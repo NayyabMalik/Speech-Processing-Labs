@@ -1,0 +1,173 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{minted}
+\usepackage{float} % Ensure figures and tables stay in place
+\usepackage[export]{adjustbox}
+
+% MATLAB Code Style
+\lstdefinestyle{matlab}{
+    language=Matlab,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!70!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10}
+}
+
+\title{\textbf{Lab Report 1: Signal Processing in MATLAB}}
+\author{Nayyab Malik\\ BSAI-127}
+
+\date{February 11, 2025}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\begin{abstract}
+This report presents a step-by-step implementation of speech signal processing, including loading an audio file, downsampling, quantization, binary encoding, and saving the final processed signal. MATLAB is used to execute these tasks efficiently.
+\end{abstract}
+
+\section{Introduction}
+In digital signal processing, speech signals are often sampled, quantized, and encoded for efficient transmission and storage. This report covers:
+\begin{itemize}
+    \item Loading and visualizing an audio signal.
+    \item Downsampling the signal to 8 kHz.
+    \item Applying an 8-bit uniform quantization.
+    \item Converting the quantized signal into a binary format.
+    \item Saving the processed signal as a WAV file.
+\end{itemize}
+
+\section{Task 1: Loading and Plotting the Signal}
+The audio signal is loaded using the \texttt{audioread()} function in MATLAB. The sampling frequency (\textit{Fs}) is extracted, and the original signal is plotted.
+
+\begin{lstlisting}[style=matlab, caption=Loading and Plotting Signal]
+[signal, sample_freq] = audioread("segment_4.wav");
+% Plot the original signal
+t = (0:length(signal)-1) / sample_freq; % Time vector
+figure;
+plot(t, signal);
+title('Original Audio Signal');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+\end{lstlisting}
+This MATLAB script loads an audio signal from the file \texttt{segment\_4.wav} and plots its waveform. The function \texttt{audioread} reads the audio file, returning the signal data and its sampling frequency. A time vector is then computed to correctly align the signal samples with their corresponding time indices in seconds. The \texttt{plot} function visualizes the amplitude variations of the signal over time, providing insight into its structure. The resulting plot helps analyze the temporal characteristics of the audio, such as amplitude fluctuations and potential patterns.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth,frame, clip]{Screenshot 2025-02-09 190046.png}
+    \caption{Original Audio Signal}
+\end{figure}
+
+\section{Task 2: Downsampling the Signal}
+To reduce the data rate, the signal is downsampled to 8 kHz using the \texttt{resample()} function.
+
+\begin{lstlisting}[style=matlab, caption=Downsampling the Signal]
+f_max = 8000;
+signal_downsample = resample(signal, f_max, sample_freq);
+% Plot the downsampled signal
+t_new = (0:length(signal_downsample)-1)/f_max;
+figure;
+plot(t_new, signal_downsample);
+title('Downsampled Audio Signal (8 kHz)');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+\end{lstlisting}
+This MATLAB script performs downsampling on an audio signal to reduce its sampling rate to 8 kHz. The function \texttt{resample} adjusts the signal by changing its sampling frequency from the original \texttt{sample\_freq} to the target frequency \texttt{f\_max = 8000} Hz. A new time vector \texttt{t\_new} is computed to match the downsampled signal's length. The \texttt{plot} function then visualizes the modified signal, demonstrating how downsampling affects the waveform. This process is essential for reducing data size while preserving key characteristics of the audio.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth,frame, clip, trim=left bottom right top]{Screenshot 2025-02-09 190243.png}
+    \caption{Downsampled Signal (8 kHz)}
+\end{figure}
+
+\section{Task 3: Quantization}
+Quantization maps continuous amplitude values into discrete levels using an 8-bit uniform quantizer. The quantization step size (\(\delta\)) is calculated as:
+
+\begin{equation}
+    \delta = \frac{q_{\max} - q_{\min}}{L-1}
+\end{equation}
+
+where \( L = 2^{nbits} \) and \( nbits = 8 \).
+
+\begin{lstlisting}[style=matlab, caption=Applying Uniform Quantization]
+n = 8;
+l = 2^n;
+max_q = max(signal_downsample);
+min_q = min(signal_downsample);
+step_size = (max_q - min_q) / l;
+quantize_signal = round((signal_downsample - min_q) / step_size) * step_size + min_q;
+% Plot quantized signal
+figure;
+plot(t_new, quantize_signal);
+title('Quantized Audio Signal (8-bit)');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+\end{lstlisting}
+This MATLAB graph applies uniform quantization to the downsampled audio signal using 8-bit resolution. The number of quantization levels is defined as \( l = 2^8 = 256 \), and the step size is computed based on the signal's maximum and minimum values. The quantization process involves rounding each sample to the nearest quantization level and reconstructing the signal. Finally, the quantized signal is plotted to visualize how amplitude values are discretized, which helps in reducing the bit depth while maintaining an approximate representation of the original waveform.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth,frame, clip]{Screenshot 2025-02-09 190349.png}
+    \caption{Quantized Signal (8-bit)}
+\end{figure}
+
+\section{Task 4: Encoding the Signal}
+Each quantized sample is converted into an 8-bit binary format using the \texttt{dec2bin()} function.
+
+\begin{lstlisting}[style=matlab, caption=Binary Encoding]
+encoding = dec2bin(floor((quantize_signal - min_q) / step_size), n);
+disp(encoding(1:10, :)); % Display first few samples
+\end{lstlisting}
+
+The first 10 binary-encoded samples of the quantized signal are displayed in Table~\ref{tab:binary_samples}.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|}
+        \hline
+        \textbf{Sample Index} & \textbf{Binary Representation} \\
+        \hline
+        1  & 01101001 \\
+        2  & 01101010 \\
+        3  & 01101100 \\
+        4  & 01101110 \\
+        5  & 01110001 \\
+        6  & 01110011 \\
+        7  & 01110100 \\
+        8  & 01110110 \\
+        9  & 01111000 \\
+        10 & 01111010 \\
+        \hline
+    \end{tabular}
+    \caption{First 10 Encoded Binary Samples}
+    \label{tab:binary_samples}
+\end{table}
+
+\section{Task 5: Saving the Processed Signal}
+The quantized signal is saved as a `.wav` file using the \texttt{audiowrite()} function.
+
+\begin{lstlisting}[style=matlab, caption=Saving the Processed Signal]
+audiowrite('quantized_audio.wav', quantize_signal, f_max);
+\end{lstlisting}
+
+\section{Conclusion}
+This report demonstrated the process of downsampling, quantization, encoding, and saving an audio signal. The results show that lower bit-depth quantization preserves key features while reducing file size, making it suitable for storage and transmission.
+
+\end{document}

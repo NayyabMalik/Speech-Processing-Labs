@@ -1,0 +1,303 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{minted}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[export]{adjustbox}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{\textbf{Lab 8:\\
+Speech Signal Classification using Different Neural Network Algorithms}}
+\author{Nayyab Malik\\BSAI-127}
+\date{April 15, 2025}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+In this lab, you will learn how to classify speech signals using two different neural network algorithms.
+The speech signals will be processed to extract important features such as Mel-Frequency Cepstral
+Coefficients (MFCCs). A Pattern Recognition Neural Network (patternnet) and a General Feedforward
+Neural Network (feedforwardnet) will be trained separately. Both networks will be evaluated based on
+accuracy, precision, recall, and F1-score. This lab demonstrates how different neural architectures affect
+classification performance.
+
+\section{Neural Network Algorithms}
+
+\subsection{Pattern Recognition Neural Network}
+The patternnet is specialized for classification tasks. It uses a softmax activation at the output and a
+single hidden layer by default. It is efficient, fast, and suitable for simple datasets and problems where
+high interpretability is not critical.
+
+\subsection{Feedforward Neural Network (feedforwardnet)}
+The feedforwardnet is a more general and flexible neural network that can have multiple hidden layers
+and be adapted for both regression and classification tasks. It is better suited for modeling complex
+patterns and non-linear boundaries in data.
+
+\section{Lab Tasks}
+\begin{enumerate}
+    \item Read two speech signals using \texttt{audioread()}.
+    \item Extract MFCC features from each speech signal.
+    \item Design and train a Pattern Recognition Neural Network (\texttt{patternnet}).
+    \item Design and train a Feedforward Neural Network (\texttt{feedforwardnet}).
+    \item Test both networks and calculate:
+    \begin{itemize}
+        \item Accuracy
+        \item Precision
+        \item Recall
+        \item F1-Score
+    \end{itemize}
+    \item Compare the performance of both networks.
+\end{enumerate}
+
+\subsection{Python Code Implementation}
+
+\begin{minted}[fontsize=\small, linenos, breaklines, bgcolor=gray!10]{python}
+# Step 1: Load audio files
+y1, sr1 = librosa.load('/content/segment_1.wav', sr=None)
+y2, sr2 = librosa.load('/content/segment_2.wav', sr=None)
+
+# Step 2: Extract MFCC Features
+mfcc1 = librosa.feature.mfcc(y=y1, sr=sr1, n_mfcc=13).T
+mfcc2 = librosa.feature.mfcc(y=y2, sr=sr2, n_mfcc=13).T
+
+X = np.vstack((mfcc1, mfcc2))
+y = np.array([0]*len(mfcc1) + [1]*len(mfcc2))
+Y = to_categorical(y)
+
+# Train-test split
+X_train, X_test, y_train, y_test, Y_train, Y_test = train_test_split(
+    X, y, Y, test_size=0.2, random_state=42)
+\end{minted}
+
+\begin{minted}[fontsize=\small, linenos, breaklines, bgcolor=gray!10]{python}
+# Step 3: Pattern Recognition Neural Network
+pattern_model = Sequential([
+    Dense(50, activation='relu', input_shape=(13,)),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(2, activation='softmax')
+])
+pattern_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+pattern_model.fit(X_train, Y_train, epochs=10, verbose=0)
+\end{minted}
+
+\begin{minted}[fontsize=\small, linenos, breaklines, bgcolor=gray!10]{python}
+# Step 4: Feedforward Neural Network
+feedforward_model = Sequential([
+    Dense(50, activation='relu', input_shape=(13,)),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(50, activation='relu'),
+    Dense(2, activation='softmax')
+])
+feedforward_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+feedforward_model.fit(X_train, Y_train, epochs=50, verbose=0)
+\end{minted}
+
+\begin{minted}[fontsize=\small, linenos, breaklines, bgcolor=gray!10]{python}
+# Step 5: Evaluation Function
+def evaluate_model(model, X_test, y_test, name="Model"):
+    y_pred_prob = model.predict(X_test)
+    y_pred = np.argmax(y_pred_prob, axis=1)
+
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred)
+    rec = recall_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+
+    print(f"\n{name} Performance:")
+    print(f"Accuracy:  {acc:.4f}")
+    print(f"Precision: {prec:.4f}")
+    print(f"Recall:    {rec:.4f}")
+    print(f"F1 Score:  {f1:.4f}")
+
+# Execute evaluations
+evaluate_model(pattern_model, X_test, y_test, "Pattern Recognition Network")
+evaluate_model(feedforward_model, X_test, y_test, "Feedforward Neural Network")
+\end{minted}
+
+\subsection{Output}
+
+\subsection*{Pattern Recognition Network Evaluation Metrics}
+\begin{itemize}
+    \item Accuracy: \textbf{0.8695}
+    \item Error Rate: \textbf{0.1305}
+    \item Precision: \textbf{0.8725}
+    \item Recall: \textbf{0.8532}
+    \item F1 Score: \textbf{0.8627}
+\end{itemize}
+
+\subsection*{Feedforward Neural Network Evaluation Metrics}
+\begin{itemize}
+    \item Accuracy: \textbf{0.9041}
+    \item Error Rate: \textbf{0.0959}
+    \item Precision: \textbf{0.9164}
+    \item Recall: \textbf{0.8809}
+    \item F1 Score: \textbf{0.8983}
+\end{itemize}
+
+\subsection{Discussion}
+
+\subsection*{Performance Comparison}
+
+Both networks performed well in classifying the speech signals based on MFCC features. However, the Feedforward Neural Network outperformed the Pattern Recognition Network across all metrics. It achieved higher accuracy (90.41\% vs. 86.95\%), better precision and recall, and a stronger F1 score (0.8983 vs. 0.8627), indicating it was more effective in distinguishing between the two classes.
+
+The deeper structure of the feedforward network and longer training epochs likely contributed to its superior performance. Future improvements could include using regularization, dropout, or tuning hyperparameters for further gains.
+\section{Mini Project:Multi-Class Voice Command Recognition Using Neural Networks}
+\subsection{Model Implementation}
+The following Python code demonstrates the implementation of both neural networks using the Keras library for training and evaluation.
+
+
+\begin{minted}[fontsize=\small, linenos, breaklines, bgcolor=gray!10]{python}
+import os
+import librosa
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.utils import to_categorical
+
+# Step 1: Read speech signals from folder
+folder_path = r"C:\Users\PMLS\Documents\Sound recordings\vowel_data"  # ✅ Adjust path if needed
+audio_files = [f for f in os.listdir(folder_path) if f.lower().endswith(('.wav', '.m4a'))]
+
+# Check if files are found
+if not audio_files:
+    raise ValueError(f"No .wav or .m4a files found in: {folder_path}")
+
+# Map vowels to numeric labels
+label_map = {
+    'a': 0,
+    'e': 1,
+    'i': 2,
+    'o': 3,
+    'u': 4
+}
+
+X_list = []
+y_list = []
+
+# Extract features and labels
+for file_name in audio_files:
+    file_path = os.path.join(folder_path, file_name)
+    signal, sr = librosa.load(file_path, sr=None)
+    mfcc_features = librosa.feature.mfcc(y=signal, sr=sr, n_mfcc=13).T
+
+    key = os.path.splitext(file_name)[0].lower()  # e.g., 'a' from 'a.m4a'
+    if key in label_map:
+        label = label_map[key]
+    else:
+        raise ValueError(f"Cannot determine class for file: {file_name}")
+    
+    X_list.append(mfcc_features)
+    y_list.extend([label] * len(mfcc_features))
+
+# Merge features and labels
+X = np.vstack(X_list)
+y = np.array(y_list)
+Y = to_categorical(y)  # One-hot encoding
+
+# Step 2: Train-test split
+X_train, X_test, y_train, y_test, Y_train, Y_test = train_test_split(X, y, Y, test_size=0.2, random_state=42)
+
+# Step 3: Pattern Recognition Network
+pattern_model = Sequential([
+    Dense(200, activation='relu', input_shape=(13,)),
+    Dense(200, activation='relu'),
+    Dense(200, activation='relu'),
+    Dense(200, activation='relu'),
+    Dense(200, activation='relu'),
+    Dense(200, activation='relu'),
+    Dense(5, activation='softmax')  # 5 classes: a, e, i, o, u
+])
+pattern_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+pattern_model.fit(X_train, Y_train, epochs=500, verbose=0)
+
+# Step 4: Feedforward Neural Network
+feedforward_model = Sequential([
+    Dense(200, activation='relu', input_shape=(13,)),
+    Dense(200, activation='relu'),
+    Dense(200, activation='relu'),
+    Dense(200, activation='relu'),
+    Dense(200, activation='relu'),
+    Dense(200, activation='relu'),
+    Dense(5, activation='softmax')
+])
+feedforward_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+feedforward_model.fit(X_train, Y_train, epochs=500, verbose=0)
+
+# Step 5: Evaluation function
+def evaluate_model(model, X_test, y_test, name="Model"):
+    y_pred_prob = model.predict(X_test)
+    y_pred = np.argmax(y_pred_prob, axis=1)
+
+    acc = accuracy_score(y_test, y_pred)
+    err = 1 - acc
+    prec = precision_score(y_test, y_pred, average='macro', zero_division=0)
+    rec = recall_score(y_test, y_pred, average='macro', zero_division=0)
+    f1 = f1_score(y_test, y_pred, average='macro', zero_division=0)
+
+    print(f"\n{name} Performance:")
+    print(f"Accuracy   : {acc:.4f}")
+    print(f"Error Rate : {err:.4f}")
+    print(f"Precision  : {prec:.4f}")
+    print(f"Recall     : {rec:.4f}")
+    print(f"F1 Score   : {f1:.4f}")
+
+# Step 6: Run evaluations
+evaluate_model(pattern_model, X_test, y_test, "Pattern Recognition Network")
+evaluate_model(feedforward_model, X_test, y_test, "Feedforward Neural Network")
+\end{minted}
+
+\subsection{Results}
+The following table summarizes the performance of both models.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+Model & Accuracy & Error Rate & Precision & Recall & F1 Score \\
+\hline
+Pattern Recognition Network & 0.6471 & 0.3529 & 0.6530 & 0.6474 & 0.6485 \\
+Feedforward Neural Network & 0.6807 & 0.3193 & 0.6835 & 0.6827 & 0.6811 \\
+\hline
+\end{tabular}
+\caption{Performance of the Models}
+\end{table}
+
+\subsection{Discussion}
+From the results, we observe that the Feedforward Neural Network performs slightly better than the Pattern Recognition Network. The accuracy of the Feedforward Neural Network is 0.6807, while the accuracy of the Pattern Recognition Network is 0.6471. This indicates that the Feedforward Neural Network has a better classification ability.
+
+The error rate is lower for the Feedforward Neural Network (0.3193) compared to the Pattern Recognition Network (0.3529), further confirming its superior performance.
+
+In terms of precision, recall, and F1 score, the Feedforward Neural Network outperforms the Pattern Recognition Network, demonstrating its stronger capability in recognizing speech commands.
+\section{Conclusion}
+Both the Pattern Recognition Neural Network and the Feedforward Neural Network performed well in classifying speech signals. However, the Feedforward Neural Network demonstrated superior performance across all evaluation metrics, including accuracy, precision, recall, and F1 score. This indicates that the Feedforward Neural Network is better at distinguishing between speech commands, likely due to its deeper architecture and longer training epochs.
+
+While the Pattern Recognition Network showed satisfactory results, the Feedforward Neural Network's enhanced capability makes it a more reliable choice for speech recognition tasks. Future work can focus on optimizing hyperparameters, expanding the dataset, and experimenting with more advanced models such as Recurrent Neural Networks (RNNs) or Convolutional Neural Networks (CNNs) to further improve classification performance.
+
+\end{document}

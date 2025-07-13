@@ -1,0 +1,462 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{minted} 
+\usepackage[export]{adjustbox}
+
+% MATLAB Code Style
+\lstdefinestyle{matlab}{
+    language=Matlab,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!70!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10}
+}
+
+\title{\textbf{Lab Report 2: Introduction to Discrete-Time Signal Processing in MATLAB}}
+\author{Nayyab Malik}
+\date{February 11, 2025}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Objective}
+\begin{itemize}
+    \item Introduction to digital signal processing and its applications.
+    \item Study of different signals and data types in MATLAB.
+\end{itemize}
+
+\section{Theory}
+Digital signal processing (DSP) involves the processing of a discrete-time signal (input signal) to produce another discrete-time signal (output signal) with desired properties. Understanding discrete-time signals is essential for analyzing discrete-time systems.
+
+\section{Generation of Sequences}
+Below are commonly used discrete-time signals and their MATLAB implementations.
+
+
+\section{Unit Impulse Sequence}
+A unit impulse sequence of length \(N\) can be generated using MATLAB as follows:
+
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+% Define range
+n = -10:10; 
+% Create unit impulse sequence
+impulse = [zeros(1,10) 1 zeros(1,10)];
+% Plot the impulse sequence
+stem(n, impulse, 'filled');
+title('Unit Impulse Sequence');
+xlabel('n'); ylabel('Amplitude');
+grid on;
+\end{minted}
+The unit impulse sequence, also known as the \textbf{Dirac delta function} in discrete-time signals, is a fundamental signal used in digital signal processing (DSP). The given MATLAB script defines an impulse function over the range \( n = -10 \) to \( 10 \), placing a value of 1 at \( n = 0 \) while all other values remain zero. The function is plotted using a stem plot to visualize the discrete nature of the signal. 
+
+\textbf{Significance:} The unit impulse function serves as the identity element in convolution and is widely used for analyzing system responses. It is particularly useful in determining the impulse response of linear time-invariant (LTI) systems, which helps characterize system behavior completely.
+
+\textbf{Key Takeaway:} The impulse sequence acts as an essential tool in DSP and control systems, as any discrete-time signal can be represented as a sum of scaled and shifted impulse functions.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth,frame,clip]{unit_impulse.png} % Replace with the actual file name
+    \caption{Unit Impulse Sequence}
+    \label{fig:unit_impulse}
+\end{figure}
+\section{Delayed Unit Impulse Sequence}
+
+A unit impulse sequence delayed by \(M\) samples (where \(M < N\)) can be generated using MATLAB as follows:
+
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+% Define range
+n = -10:10;  
+
+% Define delay
+M = 5;  % Delay at n = 5
+
+% Create delayed unit impulse sequence
+delayed_impulse = (n == M);
+
+% Plot the delayed impulse sequence
+stem(n, delayed_impulse, 'filled');
+title('Delayed Unit Impulse Sequence');
+xlabel('n'); ylabel('Amplitude');
+grid on;
+
+% Save the figure
+saveas(gcf, 'delayed_unit_impulse.png');
+\end{minted}
+
+The following figure illustrates the delayed unit impulse sequence is a shifted version of the standard unit impulse function. In this case, the impulse occurs at \( n = 5 \), meaning all other values remain zero except at this specific point. This shift is useful in signal processing applications, such as system analysis and discrete-time convolution. The plotted graph visually represents this delay by showing a single peak at \( n = 5 \), confirming the correct time shift of the impulse response.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth,frame,clip]{delayed_impulse.png} % Ensure the file is uploaded
+    \caption{Delayed Unit Impulse Sequence (\(M = 5\))}
+    \label{fig:delayed_impulse}
+\end{figure}
+\section{Unit Step Sequence}
+
+A unit step sequence \( u[n] \) can be generated using MATLAB as follows:
+
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+% Define range
+n = -10:10;  
+
+% Generate unit step sequence
+unit_step = (n >= 0);
+
+% Plot the unit step sequence
+stem(n, unit_step, 'filled');
+title('Unit Step Sequence');
+xlabel('n'); ylabel('Amplitude');
+grid on;
+
+% Save the figure
+saveas(gcf, 'unit_step.png');
+\end{minted}
+
+The figure below illustrates the unit step sequence is a fundamental discrete-time signal that remains zero for negative indices and becomes one for \( n \geq 0 \). It is widely used in digital signal processing and system analysis to represent causality and activation of a system at a specific point in time. The plotted graph clearly illustrates this behavior, showing a step-like transition at \( n = 0 \), where the amplitude shifts from zero to one, signifying the onset of the step function.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth,frame,clip]{unit_step.png}
+    \caption{Unit Step Sequence}
+    \label{fig:unit_step}
+\end{figure}
+\title{Sinusoidal Sequences in MATLAB}
+\author{Your Name}
+\date{\today}
+\maketitle
+
+\section{Sinusoidal Sequence }
+A sinusoidal sequence in discrete-time is given by:
+
+\[
+x[n] = A \sin(2\pi f n + \phi)
+\]
+
+where \( A \) is the amplitude, \( f \) is the frequency in cycles per sample, and \( \phi \) is the phase.
+
+
+The following MATLAB code generates a sinusoidal sequence using a frequency of 0.1 cycles/sample.
+
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+% Define range
+n = 0:20;  
+
+% Frequency (0.1 cycles per sample)
+f = 0.1;  
+
+% Generate sinusoidal sequence
+x = sin(2 * pi * f * n);
+
+% Plot the sequence
+stem(n, x, 'filled');
+title('Sinusoidal Sequence');
+xlabel('n'); ylabel('Amplitude');
+grid on;
+
+% Save the figure
+saveas(gcf, 'sinusoidal_sequence.png');
+\end{minted}
+
+The figure below illustrates the  sinusoidal sequence represents a fundamental periodic signal in discrete-time systems, defined as \( x[n] = \sin(2\pi f n) \), where \( f \) is the frequency in cycles per sample. The graph displays oscillatory behavior characteristic of sinusoidal functions, with values ranging between -1 and 1. This sequence is crucial in signal processing, communications, and control systems, as it forms the basis for analyzing and synthesizing complex waveforms.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth,frame,clip]{sinusoidal.png}
+    \caption{Sinusoidal Sequence}
+    \label{fig:sinusoidal}
+\end{figure}
+
+
+\section{ Linear and Nonlinear Systems } 
+A system is linear if it satisfies the principles of:
+- Superposition: The response to a sum of inputs equals the sum of the individual responses.
+- Homogeneity: Scaling the input scales the output by the same factor.
+
+The given system is:
+
+\[
+y[n] - 0.4y[n - 1] + 0.75y[n - 2] = 2.2403x[n] + 2.4908x[n - 1] + 2.2403x[n - 2]
+\]
+
+We will test the linearity property using MATLAB.
+
+The following MATLAB code implements the linearity test.
+
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+% Linearity Test for a Causal System in MATLAB
+close all; clear all; clc;
+
+% Define range
+n = 0:40;
+
+% Define weights
+a = 2;
+b = -3;
+
+% Generate input sequences
+x1 = cos(2*pi*0.1*n);
+x2 = cos(2*pi*0.4*n);
+x = a*x1 + b*x2;
+
+% Define system coefficients
+num = [2.2403 2.4908 2.2403]; % Numerator (input coefficients)
+den = [1 -0.4 0.75]; % Denominator (output coefficients)
+
+% Set zero initial conditions
+ic = [0 0]; 
+
+% Compute outputs
+y1 = filter(num, den, x1, ic); % Output due to x1
+y2 = filter(num, den, x2, ic); % Output due to x2
+y = filter(num, den, x, ic); % Output due to x
+yt = a*y1 + b*y2; % Weighted sum of individual outputs
+
+% Compute the difference signal
+d = y - yt; 
+
+% Plot results
+figure;
+subplot(3,1,1);
+stem(n, y, 'filled');
+ylabel('Amplitude');
+title('Output Due to Weighted Input');
+
+subplot(3,1,2);
+stem(n, yt, 'filled');
+ylabel('Amplitude');
+title('Weighted Output');
+
+subplot(3,1,3);
+stem(n, d, 'filled');
+xlabel('Time index n');
+ylabel('Amplitude');
+title('Difference Signal');
+
+% Save figures for Overleaf
+saveas(gcf, 'linearity_test.png');  
+\end{minted}
+
+The figure below illustrates the linearity property of a discrete-time system by evaluating the response to a weighted sum of inputs. The system is defined by a difference equation with given numerator and denominator coefficients. Two cosine signals of different frequencies are weighted and combined as the input. The system's response to individual inputs is computed separately and then summed with the same weights. The final graph displays the actual system response and the weighted sum of individual outputs, along with their difference. If the difference signal is zero, the system satisfies the linearity property.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth,frame,clip]{linearity_test.png}
+    \caption{Linearity Test Output}
+    \label{fig:linearity}
+\end{figure}
+
+
+\section{Time-Variant System Analysis}
+A system is time-invariant if shifting the input by \( D \) results in an output shift by \( D \) without any change in its shape or characteristics. Otherwise, the system is time-variant.
+
+To test time-variance, we use the difference signal:
+
+\[
+d[n] = y[n] - y_d[n + D]
+\]
+
+where:
+- \( y[n] \) is the system response to \( x[n] \).
+- \( y_d[n] \) is the response to a **delayed input** \( x[n - D] \).
+- If \( d[n] \neq 0 \), the system is **time-variant**.
+
+\subsection{MATLAB Implementation}
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+% Time-Variant System Test in MATLAB
+close all; clear all; clc;
+
+% Define range and delay
+n = 0:40; D = 10;
+a = 3.0; b = -2;
+
+% Generate input and delayed input
+x = a*cos(2*pi*0.1*n) + b*cos(2*pi*0.4*n);
+xd = [zeros(1,D) x];
+
+% Define system coefficients
+num = [2.2403 2.4908 2.2403]; 
+den = [1 -0.4 0.75];
+
+% Set initial conditions
+ic = [0 0];
+
+% Compute outputs
+y = filter(num, den, x, ic); % Response to x[n]
+yd = filter(num, den, xd, ic); % Response to delayed input x[n-D]
+
+% Compute the difference signal
+d = y - yd(1+D:41+D);
+
+% Plot results
+figure;
+subplot(3,1,1);
+stem(n, y, 'filled');
+ylabel('Amplitude');
+title('Output y[n]');
+
+subplot(3,1,2);
+stem(n, yd(1:41), 'filled');
+ylabel('Amplitude');
+title('Output Due to Delayed Input');
+
+subplot(3,1,3);
+stem(n, d, 'filled');
+xlabel('Time index n');
+ylabel('Amplitude');
+title('Difference Signal');
+
+% Save figure for Overleaf
+saveas(gcf, 'time_variant_test.png');
+\end{minted}
+The following figure verifies whether a given discrete-time system is time-invariant. A system is time-invariant if delaying the input by \( D \) results in an identical delay in the output without altering its shape. The test involves generating an input signal and a delayed version of it, then passing both through the system. The resulting outputs are compared by computing the difference signal \( d[n] = y[n] - y_d[n + D] \). If \( d[n] \neq 0 \), the system is time-variant. The plotted graphs illustrate the system's output to the original input, the delayed input response, and the difference signal, confirming the system's time-variance.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth,frame,clip]{time_variant_test.png}
+    \caption{Time-Variant System Test Output}
+    \label{fig:timevariant}
+\end{figure}
+
+\section{Linear Time-Invariant Discrete-Time Systems}
+A Linear Time-Invariant (LTI) system is characterized by its impulse response which describes how the system reacts to a discrete-time unit impulse input. The impulse response, denoted as \( h[n] \), plays a key role in understanding system behavior.
+
+\subsection{MATLAB Implementation}
+The impulse response of a causal LTI discrete-time system can be computed using MATLAB’s `impz` function. The first \( N \) samples of the impulse response are obtained using:
+
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+% Compute the impulse response of an LTI system
+clf; % Clear previous figures
+N = 40; % Number of samples
+
+% System coefficients
+num = [2.2403 2.4908 2.2403]; 
+den = [1 -0.4 0.75];
+
+% Compute the impulse response
+y = impz(num, den, N);
+
+% Plot the impulse response
+figure;
+stem(y, 'filled');
+xlabel('Time index n');
+ylabel('Amplitude');
+title('Impulse Response');
+grid on;
+
+% Save the figure for Overleaf
+saveas(gcf, 'impulse_response.png');
+\end{minted}
+
+The following figure shows impulse response of a system characterizes its behavior and provides insight into its stability and dynamics. In this experiment, the impulse response is computed for a given system defined by its numerator and denominator coefficients. The MATLAB function \texttt{impz} is used to generate the first \( N = 40 \) samples of the response. The resulting plot illustrates how the system reacts to a unit impulse at \( n = 0 \), showing how the system's output evolves over time. This response is crucial in determining the system's properties, such as causality, stability, and frequency behavior.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth,frame, clip]{impulse_response.png}
+    \caption{Impulse Response of the LTI System}
+    \label{fig:impulse_response}
+\end{figure}
+
+\section{Task} 
+In this task, we analyze the behavior of a Linear Time-Invariant (LTI) system when its equation is modified. The system initially follows:
+
+\[
+y[n] = 0.5(x[n] + x[n-1])
+\]
+
+which acts as a low-pass filter, averaging consecutive samples. When modified to:
+
+\[
+y[n] = 0.5(x[n] - x[n-1])
+\]
+
+it becomes a high-pass filter, emphasizing rapid changes in the signal.
+
+\subsection{MATLAB Implementation}
+The following MATLAB code generates two signals:
+- \( s_1[n] \): A low-frequency cosine wave
+- \( s_2[n] \): A high-frequency cosine wave
+- The input signal is \( x[n] = s_1[n] + s_2[n] \)
+- Outputs are calculated for both system equations
+
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+clc; clear; close all;
+
+% Define time index
+n = 0:40;
+
+% Define input signals
+s1 = cos(2 * pi * 0.05 * n); % Low-frequency signal
+s2 = cos(2 * pi * 0.4 * n);  % High-frequency signal
+x = s1 + s2; % Combined input signal
+
+% Implement the original system: y[n] = 0.5(x[n] + x[n-1])
+y_orig = 0.5 * (x + [0 x(1:end-1)]); 
+
+% Implement the modified system: y[n] = 0.5(x[n] - x[n-1])
+y_mod = 0.5 * (x - [0 x(1:end-1)]);
+
+% Plot input signal
+subplot(3,1,1);
+stem(n, x, 'filled');
+title('Input Signal x[n] = s1[n] + s2[n]');
+xlabel('n'); ylabel('Amplitude');
+grid on;
+
+% Plot output of original system
+subplot(3,1,2);
+stem(n, y_orig, 'r', 'filled');
+title('Output of Original System (Low-pass Filter)');
+xlabel('n'); ylabel('Amplitude');
+grid on;
+
+% Plot output of modified system
+subplot(3,1,3);
+stem(n, y_mod, 'g', 'filled');
+title('Output of Modified System (High-pass Filter)');
+xlabel('n'); ylabel('Amplitude');
+grid on; 
+
+% Save figures
+saveas(gcf, 'lti_system_analysis.png');
+\end{minted}
+
+\subsection{Task Observations}
+1. Original System (Low-Pass Filter)
+   - The equation \( y[n] = 0.5(x[n] + x[n-1]) \) smooths the input signal.
+   - This removes rapid variations, filtering out the high-frequency component \( s_2[n] \).
+   - The output primarily follows the low-frequency signal \( s_1[n] \).
+
+2. **Modified System (High-Pass Filter)**
+   - The equation \( y[n] = 0.5(x[n] - x[n-1]) \) emphasizes rapid changes.
+   - It reduces the slow variations from \( s_1[n] \) and enhances high-frequency changes from \( s_2[n] \).
+   - The output closely resembles the high-frequency component.
+\subsection{Result}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth,frame,clip]{lti_system_analysis.png}
+    \caption{Comparison of Input and Output Signals}
+    \label{fig:lti_analysis}
+\end{figure}
+
+
+   
+\section{Conclusion}
+We study multiple types of ideal signals along with Linear Time-Invariant Discrete-Time Systems and Linear Time-variant Discrete-Time Systems.Result section display behavior of multiple graphs that vary in different phenomenons.
+\end{document}

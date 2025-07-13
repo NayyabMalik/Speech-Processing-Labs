@@ -1,0 +1,622 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[export]{adjustbox}
+\usepackage{enumitem}
+
+
+
+\usepackage{minted} 
+% MATLAB Code Style
+\lstdefinestyle{matlab}{
+    language=Matlab,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!70!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10}
+}
+
+\title{\textbf{ Lab 5:FIR Filter Design using MATLAB
+}}
+\author{Nayyab Malik\\BSAI-127}
+\date{February 25, 2025}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+\section*{Objective}
+The primary objective of this project is to design, implement, and analyze a Finite Impulse Response (FIR) filter using MATLAB. The project aims to achieve the following:
+
+\begin{enumerate}[label=\arabic*.]
+    \item \textbf{Understand FIR Filter Theory:} Develop a comprehensive understanding of FIR filter principles, including impulse response, linear phase characteristics, and inherent stability.
+    \item \textbf{Design Using MATLAB Tools:} Utilize MATLAB's built-in functions (such as \texttt{fir1}, \texttt{fir2}, and \texttt{firls}) to design FIR filters that meet specified frequency-domain requirements like passband, stopband, and transition band characteristics.
+    \item \textbf{Simulation and Verification:} Simulate the designed filter to evaluate its performance. Analyze key metrics such as frequency response, impulse response, group delay, and filter stability using MATLAB's visualization and analysis tools.
+    \item \textbf{Comparison of Design Techniques:} Investigate different FIR filter design methodologies (for example, windowing techniques and least-squares optimization) to understand their impact on filter performance and computational efficiency.
+    \item \textbf{Application Focus:} Demonstrate the filter's effectiveness in practical applications by applying the designed FIR filter to a test signal, and assess improvements in signal quality or noise reduction.
+\end{enumerate}
+\section*{Linear-Phase FIR Filters}
+
+The shapes of impulse and frequency responses and the locations of system function zeros of linear-phase FIR filters are discussed. Let 
+\[
+\{h(n),\, 0 \le n \le M-1\}
+\]
+be the impulse response of length \(M\). The system function is given by
+\[
+H(z) = \sum_{n=0}^{M-1} h(n)z^{-n},
+\]
+which has \(M-1\) poles at the origin \(z = 0\) and \(M-1\) zeros located anywhere in the \(z\)-plane.
+
+Alternatively, the system function can be expressed as
+\[
+H(z) = z^{-(M-1)} \sum_{n=0}^{M-1} h(n)z^{M-1-n}.
+\]
+
+The frequency response of the function is obtained by evaluating \(H(z)\) on the unit circle, i.e.,
+\[
+H(e^{j\omega}) = \sum_{n=0}^{M-1} h(n)e^{-j\omega n}.
+\]
+\section{ Type-1 Linear-Phase FIR Filters}
+
+For a Type-1 Linear-Phase FIR Filter with a symmetrical impulse response and odd \(M\), we have:
+\[
+\beta = 0,\quad \alpha = \frac{M-1}{2} \quad (\text{an integer})
+\]
+and
+\[
+h(n) = h(M-1-n),\quad 0 \leq n \leq M-1.
+\]
+
+The frequency response can be written as:
+\[
+H(e^{j\omega}) = e^{-j\omega\frac{M-1}{2}} \sum_{n=0}^{\frac{M-1}{2}} a(n)\cos(\omega n),
+\]
+where the sequence \(a(n)\) is obtained from \(h(n)\) by:
+\[
+a(0) = h(M-1),
+\]
+\[
+a(n) = 2\,h(M-1-n),\quad 1 \leq n \leq \frac{M-1}{2}.
+\]
+
+Thus, the amplitude response function \(H_r(\omega)\) is:
+\[
+H_r(\omega) = \sum_{n=0}^{\frac{M-1}{2}} a(n)\cos(\omega n),
+\]
+which represents the amplitude response (and not the magnitude response) of the filter.
+
+\subsection{MATLAB Code for Type-1 FIR Filter}
+
+The following MATLAB function computes the amplitude response \(H_r(\omega)\) of a Type-1 Low-Pass FIR filter:
+
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+function [Hr, w, a, L] = Hr_Type1(h)
+    % Computes Amplitude response Hr(w) of a Type-1 LP FIR filter
+    %----------------------------------------------------------
+    % [Hr, w, a, L] = Hr_Type1(h)
+    % Hr = Amplitude Response
+    % w  = 500 frequencies between [0, pi] over which
+    % Hr is computed
+    % a  = Type-1 LP filter coefficients
+    % L  = Order of Hr
+    % h  = Type-1 LP filter impulse response
+
+    M = length(h);
+    L = (M - 1) / 2;
+    a = [h(L+1) 2 * h(L:-1:1)];
+    n = 0:L;
+    w = (0:500)' * pi / 500;
+    Hr = cos(w * n) * a';
+end
+\end{minted}
+
+\subsection{Discussion}
+
+The provided MATLAB function computes the frequency response \( H_r(\omega) \) for a given impulse response \( h \), assuming a Type-1 linear-phase FIR filter. The key steps in the function are:
+
+\begin{itemize}
+    \item \textbf{Filter Length Calculation:} The function first determines the length \( M \) of the input impulse response \( h \). The parameter \( L \) is computed as \( (M-1)/2 \), ensuring that \( M \) is odd, which is a characteristic of Type-1 FIR filters.
+    
+    \item \textbf{Coefficient Vector Formation:} The coefficient vector \( a \) is constructed using the symmetry property of Type-1 filters. The middle coefficient \( h(L+1) \) is retained, while the remaining coefficients are doubled and arranged in reverse order.
+    
+    \item \textbf{Frequency Vector Computation:} A frequency grid \( w \) is generated from 0 to \( \pi \) using 501 points to ensure smooth frequency response visualization.
+    
+    \item \textbf{Computation of \( H_r(\omega) \):} The frequency response is obtained using a matrix multiplication approach. The cosine terms correspond to the Fourier series expansion, and the resulting matrix multiplication computes \( H_r(\omega) \) efficiently.
+\end{itemize}
+
+This function is useful in analyzing the frequency response of FIR filters and is specifically designed for Type-1 filters, which are symmetric and have a linear phase characteristics.
+
+\section{Type-2 Linear-Phase FIR Filters}
+
+Type-2 FIR filters are characterized by a symmetrical impulse response \( h(n) \) with an even filter length \( M \). In this case, the parameter \( \beta = 0 \), and \( \alpha = \frac{M-1}{2} \) is not an integer. The impulse response satisfies the symmetry condition:
+
+\[
+h(n) = h(M-1-n), \quad 0 \leq n \leq M-1
+\]
+
+The frequency response is given by:
+
+\[
+H(e^{j\omega}) = e^{-j\omega (M-1)/2} \sum_{n=1}^{M/2} b(n) \cos(\pi (n - 1/2))
+\]
+
+where:
+
+\[
+b(n) = 2h(M/2 - n), \quad 1 \leq n \leq M/2
+\]
+
+The magnitude response is computed as:
+
+\[
+H_r(\omega) = \sum_{n=0}^{M/2} b(n) \cos(\pi (n - 1/2))
+\]
+
+One limitation of Type-2 FIR filters is that they cannot be used to design high-pass or band-stop filters due to their inherent symmetry properties.
+
+\subsection{MATLAB Code}
+
+The MATLAB function below computes the frequency response \( H_r(\omega) \) for a Type-2 linear-phase FIR filter with an even filter length \( M \):
+
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+    
+function [Hr, w, b, L] = Hr_type(h)
+
+
+    % Compute filter length
+    M = length(h); 
+    % Ensure M is even
+    if mod(M,2) ~= 0
+        error('M must be even for this function.');
+    end
+ 
+    L = M / 2; % Define half-length
+
+    % Generate coefficient vector b(n)
+    b = 2 * h(L - (0:L-1)); % b(n) = 2*h(M/2 - n), for 1 ≤ n ≤ M/2
+    
+    % Frequency vector
+    w = (0:500) * pi / 500; % 501 points from 0 to pi
+
+    % Compute Hr(w)
+    n = 1:L;
+    Hr = b * cos(pi * (n - 1/2))'; % Matrix multiplication
+
+end
+\end{minted}
+
+\subsection{Discussion}
+
+The function follows these key steps:
+
+\begin{itemize}
+    \item \textbf{Filter Length Check:} The function ensures that \( M \) is even, as required for Type-2 filters.
+    
+    \item \textbf{Coefficient Vector Calculation:} The coefficient vector \( b(n) \) is generated based on the formula \( b(n) = 2h(M/2 - n) \) for \( 1 \leq n \leq M/2 \). This accounts for the filter symmetry.
+
+    \item \textbf{Frequency Grid Definition:} The frequency vector \( w \) spans from 0 to \( \pi \) with 501 points to ensure accurate representation.
+
+    \item \textbf{Computing \( H_r(\omega) \):} The function performs matrix multiplication using the cosine expansion formula to calculate the real frequency response.
+
+\end{itemize}
+
+This function is useful for analyzing the frequency characteristics of Type-2 FIR filters, which have symmetrical impulse responses and even filter lengths.
+\section{Type-3 Linear-Phase FIR Filters}
+
+Type-3 FIR filters have an antisymmetric impulse response \( h(n) \) with an odd filter length \( M \). The symmetry condition is given by:
+
+\[
+h(n) = -h(M-1-n), \quad 0 \leq n \leq M-1
+\]
+
+Additionally, the center coefficient satisfies:
+
+\[
+h\left(\frac{M-1}{2}\right) = 0
+\]
+
+The frequency response is expressed as:
+
+\[
+H(e^{j\omega}) = e^{-j\left[\frac{\pi}{2} - \omega \frac{(M-1)}{2} \right]}
+\]
+
+where the coefficient vector is defined as:
+
+\[
+c(n) = 2h\left(\frac{M-1}{2} - n\right), \quad 1 \leq n \leq \frac{M-1}{2}
+\]
+
+The real part of the frequency response is given by:
+
+\[
+H_r(\omega) = \sum_{n=1}^{(M-1)/2} c(n) \sin(\omega n)
+\]
+
+A key characteristic of Type-3 FIR filters is that \( H_r(\omega) = 0 \) at \( \omega = 0 \) and \( \omega = \pi \), regardless of the coefficient values. Furthermore, the response is purely imaginary, making these filters unsuitable for low-pass or high-pass filter designs. However, this behavior is useful for approximating ideal Hilbert transformers and differentiators.
+
+\subsection{MATLAB Code}
+
+The MATLAB function below computes the real frequency response \( H_r(\omega) \) for a Type-3 FIR filter:
+
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+    
+function [Hr, w, c, L] = Hr_type(h)
+
+    % Compute filter length
+    M = length(h);
+    
+    % Ensure M is odd
+    if mod(M,2) == 0
+        error('M must be odd for this function.');
+    end
+    
+    L = (M-1)/2; % Define half-length
+    n = 1:L;  % Index range from 1 to L
+
+    % Generate coefficient vector c(n)
+    c = 2 * h(L - n + 1); % c(n) = 2*h((M-1)/2 - n)
+
+    % Frequency vector
+    w = (0:500) * pi / 500; % 501 points from 0 to pi
+
+    % Compute Hr(w) using summation formula
+    Hr = c * sin(w' * n); % Matrix multiplication for summation
+
+end
+\end{minted}
+
+\subsection{Discussion}
+
+The function follows these key steps:
+
+\begin{itemize}
+    \item \textbf{Filter Length Validation:} The function ensures \( M \) is odd, which is a defining characteristic of Type-3 FIR filters.
+    
+    \item \textbf{Coefficient Vector Calculation:} The coefficient vector \( c(n) \) is derived from the antisymmetric impulse response property using \( c(n) = 2h\left(\frac{M-1}{2} - n\right) \).
+    
+    \item \textbf{Frequency Vector Computation:} The function defines \( w \) as a set of 501 points from \( 0 \) to \( \pi \), providing an accurate frequency response visualization.
+    
+    \item \textbf{Computation of \( H_r(\omega) \):} The frequency response is computed using a sine expansion. The matrix multiplication efficiently evaluates the summation.
+
+\end{itemize}
+
+Due to the purely imaginary nature of \( jH_r(\omega) \), Type-3 filters are not suitable for low-pass or high-pass designs but are effective for applications such as Hilbert transforms and differentiation operations.
+\section{Type-4 Linear-Phase FIR Filters}
+
+Type-4 FIR filters have an antisymmetric impulse response \( h(n) \) with an even filter length \( M \). This case is similar to Type-2 filters, but with antisymmetry:
+
+\[
+h(n) = -h(M-n), \quad 0 \leq n \leq M-1
+\]
+
+The frequency response is given by:
+
+\[
+H(e^{j\omega}) = e^{-j\left[\frac{\pi}{2} - \omega \frac{(M-1)}{2} \right]}
+\]
+
+where the coefficient vector is defined as:
+
+\[
+d(n) = 2h\left(\frac{M}{2} - n\right), \quad 1 \leq n \leq \frac{M}{2}
+\]
+
+The real part of the frequency response is:
+
+\[
+H_r(\omega) = \sum_{n=1}^{M/2} d(n) \sin\left(\omega (n - \frac{1}{2})\right)
+\]
+
+A key property of Type-4 FIR filters is that \( H_r(0) = 0 \) and \( H_r(\pi) = 0 \), meaning the response is purely imaginary. This makes them unsuitable for standard low-pass or high-pass filtering but ideal for applications like Hilbert transformers and differentiators.
+
+\subsection{MATLAB Code}
+
+The MATLAB function below computes the real frequency response \( H_r(\omega) \) for a Type-4 FIR filter:
+
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+    
+function [Hr, w, d, L] = Hr_type4(h)
+
+    % [Hr, w, d, L] = Hr_type4(h)
+    % Hr = Frequency response (real part should be zero)
+    % w  = Frequency vector (0 to π)
+    % d  = Coefficients used in summation formula
+    % L  = Half-length of filter (M/2)
+    %
+    % Input:
+    %  h = Impulse response of the Type-4 FIR filter (M must be even)
+    
+    % Compute filter length
+    M = length(h);
+    
+    % Ensure M is even
+    if mod(M,2) ~= 0
+        error('M must be even for a Type-4 FIR filter.');
+    end
+    
+    L = M / 2; % Half-length of filter
+    n = 1:L;   % Index range from 1 to L
+
+    % Generate coefficient vector d(n)
+    d = 2 * h(L - n + 1); % d(n) = 2 * h(M/2 - n)
+
+    % Frequency vector (501 points from 0 to pi)
+    w = (0:500)' * pi / 500; 
+
+    % Compute Hr(w) using summation formula
+    Hr = d * sin(w * (n - 0.5)); 
+    % Matrix multiplication for summation
+
+end
+\end{minted}
+
+\subsection{Discussion}
+
+The function is structured as follows:
+
+\begin{itemize}
+    \item \textbf{Filter Length Validation:} Ensures \( M \) is even, a requirement for Type-4 FIR filters.
+    
+    \item \textbf{Coefficient Vector Computation:} The coefficient vector \( d(n) \) is obtained using \( d(n) = 2h\left(\frac{M}{2} - n\right) \), preserving antisymmetry.
+
+    \item \textbf{Frequency Grid Definition:} The frequency vector \( w \) is computed over 501 points from \( 0 \) to \( \pi \), ensuring a high-resolution response.
+
+    \item \textbf{Computation of \( H_r(\omega) \):} The response is computed using a sine-weighted summation. The matrix multiplication efficiently evaluates the summation.
+
+\end{itemize}
+
+Since \( jH_r(\omega) \) is purely imaginary, Type-4 FIR filters are not used for traditional filtering tasks. Instead, they are ideal for designing Hilbert transformers and differentiators.
+\section*{Lab Task 6}
+\section{Amplitude Response and Zero Locations for Type-2 and Type-4 FIR Filters}
+
+For Type-2 and Type-4 FIR filters, we compute the amplitude response and identify the zero locations in the z-plane. Given an impulse response \( h(n) \), the Discrete-Time Fourier Transform (DTFT) gives the frequency response:
+
+\[
+H(e^{j\omega}) = \sum_{n=0}^{M-1} h(n) e^{-j\omega n}
+\]
+
+The amplitude response is:
+
+\[
+|H(e^{j\omega})| = \sqrt{\text{Re}(H(e^{j\omega}))^2 + \text{Im}(H(e^{j\omega}))^2}
+\]
+
+To analyze the filter characteristics, we also determine the filter zeros by solving:
+
+\[
+\text{det}(H(z)) = 0
+\]
+
+where \( H(z) \) is the filter's z-transform representation.
+
+\subsection{MATLAB Code}
+
+The following MATLAB function computes the amplitude response and finds the filter zeros:
+
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+
+function [mag, w, zeros_loc] = fir_response(h, type)
+ 
+    % Inputs:
+    %   h    - Filter impulse response
+    %   type - FIR filter type ('type2' or 'type4')
+    %
+    % Outputs:
+    %   mag       - Amplitude response |H(e^jw)|
+    %   w         - Frequency vector (0 to π)
+    %   zeros_loc - Locations of zeros in the z-plane
+    
+    M = length(h); % Filter length
+    
+    % Validate filter type
+    if strcmp(type, 'type2') && mod(M,2) ~= 0
+        error('For Type-2 FIR filters, M must be odd.');
+    elseif strcmp(type, 'type4') && mod(M,2) ~= 0
+        error('For Type-4 FIR filters, M must be even.');
+    end
+
+    % Compute Frequency Response
+        % Frequency response from 0 to π
+
+    [H, w] = freqz(h, 1, 501, 'half');
+    
+    % Compute Magnitude Response
+    mag = abs(H);
+
+    % Compute Zero Locations in the Z-plane
+    zeros_loc = roots(h); % Find roots of the filter polynomial
+
+    % Plot Magnitude Response
+    figure;
+    subplot(2,1,1);
+    plot(w, mag, 'LineWidth', 1.5);
+    xlabel('Frequency (rad/sample)');
+    ylabel('|H(e^{j\omega})|');
+    title(['Amplitude Response of ' type ' FIR Filter']);
+    grid on;
+
+    % Plot Zero Locations
+    subplot(2,1,2);
+    zplane(h, 1);
+    title(['Zero Locations of ' type ' FIR Filter']);
+end
+\end{minted}
+
+\subsection{Discussion}
+
+The function performs the following tasks:
+
+\begin{itemize}
+    \item \textbf{Filter Type Validation:} Ensures that Type-2 FIR filters have an odd \( M \) and Type-4 FIR filters have an even \( M \).
+    
+    \item \textbf{Frequency Response Calculation:} The function uses MATLAB's \texttt{freqz()} to compute the frequency response over 501 points in the range \( [0, \pi] \).
+    
+    \item \textbf{Amplitude Response Computation:} The magnitude of the frequency response is extracted using \( |H(e^{j\omega})| \).
+    
+    \item \textbf{Zero Locations:} The function computes the filter zeros by finding the roots of the impulse response coefficients.
+    
+    \item \textbf{Visualization:} Two plots are generated:
+        \begin{enumerate}
+            \item Amplitude response over the normalized frequency range.
+            \item Zero locations in the z-plane using \texttt{zplane()}.
+        \end{enumerate}
+\end{itemize}
+
+The zero locations provide insight into the filter’s spectral characteristics, while the amplitude response shows how the filter attenuates different frequency components.
+\section{Determining the Type of Linear-Phase FIR Filters}
+
+In this task, we analyze the given FIR filters to determine their type based on symmetry properties. The four types of linear-phase FIR filters are:
+
+\begin{itemize}
+    \item \textbf{Type-1:} Symmetric impulse response, odd length.
+    \item \textbf{Type-2:} Symmetric impulse response, even length.
+    \item \textbf{Type-3:} Antisymmetric impulse response, odd length.
+    \item \textbf{Type-4:} Antisymmetric impulse response, even length.
+\end{itemize}
+
+Given the impulse responses:
+
+\begin{enumerate}[label=(\alph*)]
+    \item \( h(n) = [-4, 1, -1, -2, 5, 6, 5, -2, -1, 1, -4] \)
+    \item \( h(n) = [-4, 1, -1, -2, 5, 6, 6, 5, -2, -1, 1, -4] \)
+    \item \( h(n) = [-4, 1, -1, -2, 5, 0, -5, 2, 1, -1, 4] \)
+\end{enumerate}
+
+We will determine their type, compute their amplitude response, and analyze their zero locations.
+
+\subsection{MATLAB Code}
+
+The following MATLAB function determines the type of FIR filter and plots its responses:
+
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+function fir_analysis(h)
+
+    % Inputs:
+    %   h - Impulse response of FIR filter
+    %
+    % Outputs:
+    %   Type of FIR filter (1, 2, 3, or 4)
+
+
+    M = length(h); % Filter length
+    n = 0:M-1;     % Sample indices
+
+    % Check symmetry
+    if isequal(h, fliplr(h)) % Symmetric
+        if mod(M,2) ~= 0
+            type = 1; % Type-1: Symmetric, Odd
+        else
+            type = 2; % Type-2: Symmetric, Even
+        end
+    elseif isequal(h, -fliplr(h)) % Antisymmetric
+        if mod(M,2) ~= 0
+            type = 3; % Type-3: Antisymmetric, Odd
+        else
+            type = 4; % Type-4: Antisymmetric, Even
+        end
+    else
+        error('The filter is not linear-phase.');
+    end
+
+    fprintf('The filter is Type-%d FIR Filter.\n', type);
+
+    % Compute frequency response
+    [H, w] = freqz(h, 1, 501, 'half');
+    mag = abs(H);
+
+    % Compute zero locations
+    zeros_loc = roots(h);
+
+    % Plot impulse response
+    figure;
+    subplot(3,1,1);
+    stem(n, h, 'filled');
+    xlabel('n');
+    ylabel('h(n)');
+    title(['Impulse Response (Type-' num2str(type) ')']);
+    grid on;
+
+    % Plot magnitude response
+    subplot(3,1,2);
+    plot(w, mag, 'LineWidth', 1.5);
+    xlabel('Frequency (rad/sample)');
+    ylabel('|H(e^{j\omega})|');
+    title('Magnitude Response');
+    grid on;
+
+    % Plot zero locations
+    subplot(3,1,3);
+    zplane(h, 1);
+    title('Zero Locations in Z-plane');
+end
+
+% Given FIR filters
+h1 = [-4 1 -1 -2 5 6 5 -2 -1 1 -4]; % Case (a)
+h2 = [-4 1 -1 -2 5 6 6 5 -2 -1 1 -4]; % Case (b)
+h3 = [-4 1 -1 -2 5 0 -5 2 1 -1 4]; % Case (c)
+
+% Run analysis
+fir_analysis(h1); % Check Type and plot for (a)
+fir_analysis(h2); % Check Type and plot for (b)
+fir_analysis(h3); % Check Type and plot for (c)
+\end{minted}
+
+\subsection{Results and Discussion}
+
+\subsubsection{Filter (a): \( h(n) = [-4, 1, -1, -2, 5, 6, 5, -2, -1, 1, -4] \)}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{fir_a.png}
+    \caption{Results for FIR filter (a): Impulse response, amplitude response, and zero locations.}
+\end{figure}
+
+The filter has a symmetric impulse response with an odd length (\( M=11 \)). Hence, it is classified as a \textbf{Type-1 FIR filter}. The amplitude response is smooth, and the zero locations indicate a linear-phase behavior.
+
+\subsubsection{Filter (b): \( h(n) = [-4, 1, -1, -2, 5, 6, 6, 5, -2, -1, 1, -4] \)}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{fir_b.png}
+    \caption{Results for FIR filter (b): Impulse response, amplitude response, and zero locations.}
+\end{figure}
+
+The impulse response is symmetric, and the filter length is even (\( M=12 \)). Therefore, it is a \textbf{Type-2 FIR filter}. The amplitude response confirms the characteristics of this type, and the zero locations show a structured pattern.
+
+\subsubsection{Filter (c): \( h(n) = [-4, 1, -1, -2, 5, 0, -5, 2, 1, -1, 4] \)}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{fir_c.png}
+    \caption{Results for FIR filter (c): Impulse response, amplitude response, and zero locations.}
+\end{figure}
+
+For this case, the impulse response is antisymmetric, and \( M \) is odd (\( M=11 \)), indicating a \textbf{Type-3 FIR filter}. The amplitude response shows a notch at \( \omega = 0 \) and \( \omega = \pi \), which is expected for this type. The zero locations confirm its linear-phase nature.
+
+\subsection{Conclusion}
+
+From the analysis:
+
+\begin{itemize}
+    \item \textbf{Filter (a)} is a \textbf{Type-1 FIR filter} (symmetric, odd length).
+    \item \textbf{Filter (b)} is a \textbf{Type-2 FIR filter} (symmetric, even length).
+    \item \textbf{Filter (c)} is a \textbf{Type-3 FIR filter} (antisymmetric, odd length).
+\end{itemize}
+
+The impulse response plots validate the filter classification, the amplitude response plots show frequency characteristics, and the zero plots confirm the filter symmetry in the z-plane. These results highlight how the symmetry and length of an FIR filter determine its classification and behavior.
+
+\end{document}

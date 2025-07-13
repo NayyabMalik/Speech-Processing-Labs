@@ -1,0 +1,300 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[export]{adjustbox}
+\usepackage{enumitem}
+\usepackage{minted} 
+% If you're using minted, you likely don't need this listings style
+% \lstdefinestyle{matlab}{
+%     language=Matlab,
+%     basicstyle=\ttfamily\footnotesize,
+%     keywordstyle=\color{blue},
+%     commentstyle=\color{green!70!black},
+%     stringstyle=\color{red},
+%     numbers=left,
+%     numberstyle=\tiny,
+%     stepnumber=1,
+%     breaklines=true,
+%     frame=single,
+%     backgroundcolor=\color{gray!10}
+% }
+
+\title{\textbf{Lab 7 \\ Cepstrum Analysis and Homomorphic Deconvolution}}
+\author{Nayyab Malik\\BSAI-127}
+\date{April 15, 2025}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+Cepstrum analysis is a vital technique in signal processing, especially in applications like speech synthesis
+and recognition. In this lab, you will compute the cepstrum of a speech signal, apply a liftering technique
+as a filtering method in cepstrum analysis, and resynthesize the signal. Accurately estimating the impulse
+response of the vocal tract for the targeted phoneme is crucial.
+The purpose of this lab is to explore cepstrum analysis techniques using audio recordings of vowel
+sounds produced by both male and female speakers. The goal is to extract excitation signals from
+speech through homomorphic deconvolution using cepstrum domain filtering (liftering). This lab offers
+a comprehensive examination of cepstrum analysis and homomorphic deconvolution techniques in audio
+signal processing, with a focus on effectively separating the excitation and transfer function components
+in speech.
+\section{Background}
+\subsection{Deconvolution}
+Deconvolution is the process of reversing the effects of convolution. In an ideal scenario, if 
+\[
+g(n) = f(n) * h(n),
+\]
+where \( f(n) \) is the signal of interest (such as an audio signal) and its convolution with \( h(n) \) represents the distortion introduced by the system—like that occurring during the recording process—it becomes essential to restore \( f(n) \) from \( g(n) \).
+
+This restoration can be accomplished by inverting the convolution process using \( h(n) \) through various techniques, including inverse filtering.
+
+However, when noise is present, inverse filtering can lead to significant drawbacks, particularly the amplification of noise. An alternative strategy for deconvolution involves directly separating the components \( f(n) \) and \( h(n) \) from \( g(n) \).
+\subsection{Cepstrum Domain}
+
+The cepstrum is a commonly used transform that helps extract information from a person’s speech signal. It allows for the separation of the excitation signal, which contains the words and pitch, from the transfer function, which reflects the quality of the voice.
+
+The term \textit{“cepstrum”} is derived from the first syllable “ceps,” which is a rearrangement of the letters in the word “spectrum.” This clever naming convention highlights the relationship between cepstrum and spectrum.
+
+\begin{equation}
+g(n) = f(n) * h(n)
+\end{equation}
+
+In the frequency domain:
+\begin{equation}
+G(\omega) = F(\omega)H(\omega)
+\end{equation}
+
+Taking the logarithm of the magnitude:
+\begin{equation}
+\log |G(\omega)| = \log |F(\omega)| + \log |H(\omega)|
+\end{equation}
+
+In the cepstrum domain:
+\begin{equation}
+\mathcal{F}^{-1} \{ \log |G(\omega)| \} = \mathcal{F}^{-1} \{ \log |F(\omega)| \} + \mathcal{F}^{-1} \{ \log |H(\omega)| \}
+\end{equation}
+\section*{Objectives}
+\begin{itemize}
+    \item To analyze and compare the cepstrum of multiple signals to identify periodic structures and spectral characteristics.
+    \item To understand the periodicities and harmonic content in the frequency spectra of the signals by observing the cepstrum.
+    \item To identify the differences in the periodicity, baseline characteristics, and secondary structures across different signals.
+    \item To provide an interpretation of how the time-domain characteristics (such as bursts and oscillations) influence the cepstrum and its associated spectral features.
+\end{itemize}
+\section{Executive Summary}
+
+This report presents the analysis of vowel sounds using cepstrum and homomorphic deconvolution techniques. Ten samples—five from male and five from female speakers—were analyzed for the vowels “a,” “e,” “i,” “o,” and “u.” Differences in cepstral features between genders and vowels were observed. Notably, female voices exhibited more pronounced peaks in the cepstrum domain due to higher pitch frequencies. The cepstrum was further processed through liftering to isolate the excitation signal, revealing differences from the original time-domain signal and providing insight into vocal characteristics.
+
+\section{Task:Cepstrum Analysis of Vowel Sounds}
+
+\subsection{Overview}
+
+In this experiment, vowel samples ('a', 'e', 'i', 'o', 'u') were analyzed using cepstral techniques. Manual implementations of the Discrete Fourier Transform (DFT) and Inverse DFT (IDFT) were used to gain deeper insights into the signal processing involved. The process includes:
+\begin{itemize}
+    \item Reading and preprocessing audio files.
+    \item Computing the DFT of the signal.
+    \item Taking the log of the magnitude spectrum.
+    \item Computing the cepstrum using IDFT.
+    \item Visualizing the time-domain signal, spectrum, log-magnitude, and cepstrum.
+\end{itemize}
+
+\subsection{MATLAB Code for Cepstrum Computation}
+\begin{minted}[fontsize=\small, breaklines, frame=lines]{matlab}
+clc;
+clear;
+close all;
+
+% Set folder path containing vowel recordings
+folderPath = '/MATLAB Drive/vowel_data';
+vowels = {'a', 'e', 'i', 'o', 'u'};
+
+for i = 1:length(vowels)
+    vowel = vowels{i};
+    wavFile = fullfile(folderPath, [vowel '.m4a']);
+    
+    if ~exist(wavFile, 'file')
+        warning('File not found: %s', wavFile);
+        continue;
+    end
+
+    fprintf('\nProcessing vowel: %s\n', upper(vowel));
+    
+    % Load audio and preprocess
+    [x, Fs] = audioread(wavFile);
+    if size(x,2) == 2
+        x = mean(x, 2);  % Convert stereo to mono
+    end
+    
+    % Use exactly 1024 samples
+    N = 1024;
+    if length(x) < N
+        x = [x; zeros(N - length(x), 1)];
+    else
+        x = x(1:N);
+    end
+    t = (0:N-1) / Fs;
+    
+    % Manual DFT
+    X = manual_dft(x);
+    f = (0:N-1) * Fs / N;
+    
+    % Log Magnitude
+    logMag = log(1 + abs(X));
+    
+    % Manual IDFT (Cepstrum)
+    cepstrum = real(manual_idft(logMag));
+    q = (0:N-1) / Fs;
+    
+    % Plot
+    figure('Name', ['Cepstrum Analysis - ' upper(vowel)], 'NumberTitle', 'off');
+    
+    subplot(2,2,1); plot(t, x);
+    title(['Original Signal - ' upper(vowel)]);
+    xlabel('Time (s)'); ylabel('Amplitude'); grid on;
+    
+    subplot(2,2,2); plot(f, abs(X));
+    title('Magnitude Spectrum (Manual DFT)');
+    xlabel('Frequency (Hz)'); ylabel('|X(f)|'); grid on;
+    
+    subplot(2,2,3); plot(f, logMag);
+    title('Log-Magnitude Spectrum');
+    xlabel('Frequency (Hz)'); ylabel('log(1 + |X(f)|)'); grid on;
+    
+    subplot(2,2,4); plot(q, cepstrum);
+    title('Cepstrum (Manual IDFT)');
+    xlabel('Quefrency (s)'); ylabel('Amplitude'); grid on;
+end
+\end{minted}
+
+\subsubsection*{Manual DFT and IDFT Functions}
+\begin{minted}[fontsize=\small, breaklines, frame=lines]{matlab}
+function X = manual_dft(x)
+    N = length(x);
+    X = zeros(1, N);
+    for k = 0:N-1
+        for n = 0:N-1
+            X(k+1) = X(k+1) + x(n+1) * exp(-1j * 2 * pi * k * n / N);
+        end
+    end
+end
+
+function x = manual_idft(X)
+    N = length(X);
+    x = zeros(1, N);
+    for n = 0:N-1
+        for k = 0:N-1
+            x(n+1) = x(n+1) + X(k+1) * exp(1j * 2 * pi * k * n / N);
+        end
+        x(n+1) = x(n+1) / N;
+    end
+end
+\end{minted}
+
+\subsection{Results and Interpretation}
+
+The output from the above code provides four visualizations for each vowel sound:
+
+\begin{itemize}
+    \item \textbf{Time-Domain Signal:} Raw recorded vowel waveform.
+    \item \textbf{Magnitude Spectrum:} Shows the frequency components using manual DFT.
+    \item \textbf{Log-Magnitude Spectrum:} Reveals energy distribution in a more compressed scale.
+    \item \textbf{Cepstrum:} Highlights periodicity in the spectral domain; peaks indicate pitch.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth,frame, clip]{A.jpg}
+    \caption{Vowel /a/}
+    \label{fig:A}
+
+
+\end{figure}
+The analysis of Signal A reveals several important features across the time-domain signal, spectrum, and cepstrum. The original signal shows a rapid decay in amplitude, indicating a transient or damped oscillation. The log-magnitude and magnitude spectra show a steep decline across frequencies, with no distinct harmonic peaks, which suggests the signal has a dominant low-frequency component and is aperiodic. The cepstrum, calculated from the log-magnitude spectrum, is flat and lacks prominent peaks, further supporting the interpretation that the signal is noise-like or an impulse, rather than periodic.
+The absence of clear peaks in the cepstrum, which is typical for signals exhibiting pitch or echo, points to the aperiodic nature of Signal A. This flat cepstrum is indicative of a noise-dominated signal, with energy concentrated in lower frequencies. The lack of periodic structure in both the spectrum and cepstrum suggests that the signal might be a damped oscillation or filtered noise, possibly due to the windowing effects or inherent noise in the recording process.
+
+   \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth,frame, clip]{E.jpg}
+    \caption{Vowel /e/}
+    \label{fig:E}
+\end{figure}
+
+
+The analysis of Signal E reveals key features across the plots. The time-domain signal shows a burst of activity around 0.02 seconds, indicating a transient or pulse-like signal. The magnitude spectrum (manual DFT) highlights peaks at various frequencies, including a significant DC component and a prominent peak towards the higher frequencies around 40-50 kHz, reflecting the signal’s dominant frequency components. The log-magnitude spectrum smooths these variations, providing a clearer view of the frequency content. The cepstrum, obtained through the inverse DFT of the log-magnitude spectrum, displays a prominent peak at approximately 0.02 seconds in quefrency, suggesting periodicity or echo-like structures in the signal. This peak corresponds to periodic components in the frequency domain, possibly related to echoes or harmonics. The peak near zero quefrency reflects the overall spectral envelope, which typically corresponds to the signal’s smooth and broad frequency characteristics. Overall, the cepstrum analysis of Signal E suggests a periodic or echo-like structure, revealing more regularity compared to noise-like signals. The presence of a distinct peak in the cepstrum indicates that the signal contains repeating structures, possibly due to echoes or harmonics.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth,frame, clip]{I.jpg}
+    \caption{Vowel /i/}
+    \label{fig:I}
+\end{figure}
+
+The analysis of Signal I reveals several key differences when compared to Signal E. The time-domain signal shows a burst of activity around 0.02 seconds, similar to Signal E, but the shape of the burst appears slightly different, suggesting a distinct signal characteristic. The magnitude spectrum displays a prominent peak near 0 Hz (DC component) and a more pronounced peak towards the higher frequencies (around 40-50 kHz) compared to Signal E. This indicates a higher concentration of energy at these frequencies in Signal I. The log-magnitude spectrum compresses the range of the frequency components, highlighting both large and small frequency contributions, with the DC and high-frequency peaks clearly visible. The cepstrum, derived from the inverse DFT of the log-magnitude spectrum, shows a significant peak at a low quefrency (near 0), similar to Signal E, but the peak at the higher quefrency around 0.02 seconds is more pronounced in this case. This suggests a stronger periodicity or echo-like structure in Signal I. Additionally, the cepstrum of Signal I exhibits more baseline fluctuations and some smaller peaks, indicating the presence of other less dominant periodicities or spectral components. In conclusion, the cepstrum of Signal I suggests that it contains more prominent periodic structures, possibly due to echoes or harmonics, when compared to Signal E. The differences in the cepstra imply that Signal I has a more significant periodicity in its frequency spectrum, with subtle variations in the baseline suggesting additional spectral features.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth,frame, clip]{O.jpg}
+    \caption{Vowel /o/}
+    \label{fig:O}
+\end{figure}
+Signal O exhibits a distinct characteristic compared to the previous signals. While it shares a similar structure with the others—showing a burst of activity around 0.02 seconds—it has a smaller peak at this quefrency in its cepstrum, indicating a weaker periodicity in its frequency spectrum. The magnitude spectrum shows more complex fluctuations and multiple smaller peaks, particularly at higher frequencies, suggesting the presence of secondary periodicities. Unlike Signal I, which has prominent baseline fluctuations, Signal O's cepstrum displays a smoother baseline with some minor fluctuations, highlighting the less dominant periodic components. These differences suggest that Signal O’s time-domain burst, with its oscillatory nature, contributes to a more intricate spectral structure, marked by weaker periodicity at 0.02 seconds and the presence of additional smaller peaks.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth,frame, clip]{U.jpg}
+    \caption{Vowel /u/}
+    \label{fig:U}
+\end{figure}
+
+The analysis of Signal U provides valuable insights when compared to Signals E and I. The time-domain signal shows a burst of activity around 0.02 seconds, similar to the previous signals, but with a significant difference in amplitude, as the values are in the negative range. The magnitude spectrum reveals a peak near 0 Hz (DC component) with a distribution of energy across other frequencies. This signal also shows a peak towards the higher frequencies (40-50 kHz), though it is less pronounced compared to Signal I. The log-magnitude spectrum compresses the amplitude range, highlighting both small and large frequency components, with the DC and high-frequency regions clearly visible. The cepstrum, obtained by performing the inverse DFT of the log-magnitude spectrum, shows a significant peak at low quefrency (near 0), consistent across all three signals. The peak at a higher quefrency (around 0.02 seconds) is present, but its amplitude is smaller compared to Signal I and similar to Signal E. The baseline of Signal U's cepstrum appears relatively smooth, with fewer fluctuations than Signal I. 
+
+When comparing the cepstrum of Signal U to those of Signals E and I, the peak at the 0.02 s quefrency is of a similar magnitude to Signal E, but smaller than Signal I. The smooth baseline in Signal U suggests that it has fewer secondary periodicities or complex structures in its frequency spectrum, indicating a less complex signal compared to Signal I. The analysis suggests that Signal I has the most prominent periodic component, followed by Signal E, with Signal U exhibiting the weakest periodic contribution at this quefrency. The differences in the cepstrum reflect the varying degrees of periodicity or modulation present in the frequency spectra of these signals. The presence of a smaller peak at 0.02 s quefrency in Signal U indicates a less significant periodic structure, which could be due to weaker echoes, harmonics, or modulation. 
+\subsubsection{Discussion of Cepstrum Differences}
+
+\begin{itemize}
+
+    \item \textbf{Peak at ≈ 0.02 s Quefrency:}
+    \begin{itemize}
+        \item \textbf{Signal I}: Largest peak, indicating the strongest periodic component (likely due to prominent echoes, harmonic content, or modulation).
+        \item \textbf{Signal E}: Noticeable peak, but smaller than Signal I, suggesting a less pronounced periodic structure.
+        \item \textbf{Signal U}: Peak similar in magnitude to Signal E, indicating moderate periodicity but weaker than Signal I.
+        \item \textbf{Signal O}: Smallest peak, suggesting weaker periodicity or periodic components in its frequency spectrum.
+    \end{itemize}
+
+    \item \textbf{Baseline Fluctuations:}
+    \begin{itemize}
+        \item \textbf{Signal I}: Most baseline fluctuations and smaller peaks, indicating a complex and varied frequency spectrum.
+        \item \textbf{Signals E and U}: Relatively smoother baselines, implying fewer or less significant secondary periodicities.
+        \item \textbf{Signal O}: Shows smaller fluctuations compared to Signal I, suggesting a less complex structure, but still contains minor peaks at other quefrencies.
+    \end{itemize}
+
+    \item \textbf{Smaller Peaks and Secondary Periodicities:}
+    \begin{itemize}
+        \item \textbf{Signal O}: Contains smaller peaks at different quefrencies, possibly indicating less dominant periodicities arising from the oscillatory nature of the signal's burst in the time domain.
+        \item \textbf{Other Signals}: Have fewer smaller peaks, indicating simpler frequency structures.
+    \end{itemize}
+
+    \item \textbf{Interpretation of Differences:}
+    \begin{itemize}
+        \item Signal I has the strongest periodic structure, likely caused by prominent echoes or harmonics.
+        \item Signal O's weaker periodicity suggests fewer or less pronounced echoes, with additional complexity due to smaller, less dominant periodicities.
+        \item The cepstra highlight the varying degrees of periodicity and complexity in the frequency spectra, providing insights into the time-domain characteristics of each signal (such as echoes, harmonics, and modulations).
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Observations}
+\begin{itemize}
+    \item Female speakers generally showed more peaks or sharper peaks in the cepstrum due to their higher pitch frequencies.
+    \item The vowel sounds differ in quefrency peak positions and shape, reflecting vocal tract variations.
+    \item Using a fixed sample size (1024 samples) ensured consistency across vowel comparisons.
+\end{itemize}
+\section{Conclusion}
+In this analysis, we compared the cepstrum of four different signals, observing key differences in the periodic components and spectral structures across each signal. The peak at approximately 0.02 seconds in the cepstrum was most pronounced in Signal I, indicating the strongest periodic structure, followed by Signal E, Signal U, and finally Signal O, which exhibited the weakest periodicity at this quefrency. The baseline characteristics also varied, with Signal I showing the most fluctuations, indicative of a more complex frequency structure. The other signals, particularly Signal O, demonstrated a simpler spectral structure with fewer baseline fluctuations and smaller peaks at different quefrencies. These differences in the cepstrum highlight the distinct characteristics of each signal, which are influenced by their unique time-domain behaviors, such as burst shapes and oscillatory features. Overall, the cepstrum proved to be a valuable tool for revealing periodicities and modulation patterns in the frequency domain, which could be useful for further analysis of signal processing and speech analysis.
+
+\end{document}

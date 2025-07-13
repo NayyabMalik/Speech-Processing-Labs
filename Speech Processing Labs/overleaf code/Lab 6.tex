@@ -1,0 +1,395 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[export]{adjustbox}
+\usepackage{enumitem}
+
+
+
+\usepackage{minted} 
+% MATLAB Code Style
+\lstdefinestyle{matlab}{
+    language=Matlab,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!70!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10}
+}
+
+\title{\textbf{ Lab 6 (Part a) \\ Filter FIR Design  using FDA TOOL 
+}}
+\author{Nayyab Malik\\BSAI-127}
+\date{February 25, 2025}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+Digital Filters are among the most common DSP applications, being found in a large variety of embedded
+systems. This experiment involves the design, simulation, and implementation of a digital filter. The filter
+in question is a Finite Impulse Response (FIR) filter, which presents some peculiarities. For instance, its
+transfer function has a numerator polynomial only (the denominator is 1), which means that there is no
+feedback path and therefore such a filter is always stable.
+
+You will use the windowing method to design the filter, and you will have the opportunity to explore a very handy design package, the FDA Tool, to accomplish this task. You will simulate the design in Simulink and run it in real-time on a DSP platform.
+
+After this lab, you will be able to:
+\begin{itemize}
+    \item Design a digital filter using FDA Tool.
+    \item Simulate the filter in Simulink.
+    \item Implement and test it on a DSP platform.
+\end{itemize}
+
+\section{FIR Filter Design}
+
+Finite Impulse Response (FIR) filters are widely used in digital signal processing due to their inherent stability and linear phase characteristics. FIR filter design typically involves selecting the filter order, choosing a window function, and determining the filter coefficients.
+
+The windowing method is a popular technique for FIR filter design. It involves multiplying an ideal filter response with a chosen window function to control spectral leakage. Common window functions include:
+\begin{itemize}
+    \item Rectangular Window
+    \item Hamming Window
+    \item Hanning Window
+    \item Blackman Window
+\end{itemize}
+
+The steps for designing an FIR filter using the FDA Tool are:
+\begin{enumerate}
+    \item Specify the filter type (low-pass, high-pass, band-pass, etc.).
+    \item Define the cutoff frequencies and transition band.
+    \item Select the window function to shape the filter response.
+    \item Generate the filter coefficients and analyze the frequency response.
+\end{enumerate}
+
+Once designed, the FIR filter can be implemented in a DSP system and tested in real-time to verify its performance.
+
+\section{Task 1: FIR Low-Pass Filter Design}
+
+In this task, we design a Low-Pass Filter (LPF) using the windowing method with the following specifications:
+
+\subsection{Filter Specifications}
+\begin{itemize}
+    \item Passband edge: 0.25
+    \item Stopband edge: 0.45
+    \item Passband ripple ($R_p$): 1 dB
+    \item Stopband attenuation ($A_s$): 40 dB
+\end{itemize}
+
+The FIR filter will be designed using the \texttt{fir1} function, and its impulse response $h(n)$ will be obtained. Additionally, we will plot its amplitude response in dB and verify the passband ripple and stopband attenuation.
+
+\subsection{Filter Design Using FDA Tool}
+The FDA Tool (Filter Design & Analysis Tool) in MATLAB provides a convenient interface for designing and analyzing digital filters. The steps to design the FIR LPF using FDA Tool are:
+\begin{enumerate}
+    \item Open the FDA Tool in MATLAB by typing \texttt{fdatool}.
+    \item Select the filter type as \textbf{FIR} and method as \textbf{Windowing}.
+    \item Set the filter order appropriately to meet the given specifications.
+    \item Choose a suitable window function (Hamming, Hanning, etc.).
+    \item Specify the passband and stopband edges.
+    \item Generate and analyze the filter coefficients.
+\end{enumerate}
+
+
+
+
+\subsection{Results and Discussion}
+
+In this section, we analyze the designed Low-Pass Filter (LPF) using the windowing method and discuss its characteristics based on the obtained graphs.
+
+\subsubsection{Magnitude Response Analysis}
+The magnitude response of the filter is shown in Figure~\ref{fig:mag_response}. The key observations are:
+\begin{itemize}
+    \item The passband extends up to 0.25 (normalized frequency) as specified in the design.
+    \item The stopband begins at .45, where the attenuation reaches approximately 40 dB, satisfying the given stopband attenuation (\( A_s = 40 \) dB).
+    \item The transition band lies between 0.25 and 0.45, influenced by the chosen window function.
+    \item The filter exhibits minimal ripple in the passband, ensuring a smooth frequency response.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth,frame, clip]{magnitude_response.png}
+    \caption{Magnitude Response of the FIR Low-Pass Filter}
+    \label{fig:mag_response}
+\end{figure}
+
+\subsubsection{Phase Response Analysis}
+Figure~\ref{fig:phase_response} illustrates the phase response of the designed filter. The observations are:
+\begin{itemize}
+    \item The phase response is approximately linear over the passband, which is a characteristic of FIR filters.
+    \item A linear phase ensures that there is no phase distortion in the filtered signal.
+    \item The phase discontinuity near the stopband edge is expected due to the filter’s finite impulse response.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth,frame, clip]{phase_response.png}
+    \caption{Phase Response of the FIR Low-Pass Filter}
+    \label{fig:phase_response}
+\end{figure}
+
+\subsubsection{Pole-Zero Plot Analysis}
+The pole-zero plot, shown in Figure~\ref{fig:pole_zero}, provides insight into the filter’s stability and frequency characteristics:
+\begin{itemize}
+    \item All zeros are located on the unit circle, confirming the filter’s stability.
+    \item The absence of poles indicates that this is a Finite Impulse Response (FIR) filter.
+    \item The positioning of zeros determines the filter’s frequency response characteristics, with attenuation occurring at specific frequencies.
+\end{itemize}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth,frame, clip]{pole_zero_plot.png}
+    \caption{Pole-Zero Plot of the FIR Low-Pass Filter}
+    \label{fig:pole_zero}
+\end{figure}
+\subsubsection{Verification of Design Specifications}
+To verify that the designed filter meets the given specifications:
+\begin{itemize}
+    \item The passband ripple (\( R_p \)) is observed to be within 1 dB, as required.
+    \item The stopband attenuation (\( A_s \)) meets or exceeds 40 dB, ensuring effective suppression of unwanted frequencies.
+    \item The magnitude and phase response confirm that the filter has been properly designed using the windowing method.
+\end{itemize}
+
+
+
+\section{Task 2: Band-Pass Filter Design Using Frequency Sampling Method}
+
+\subsection{Filter Specifications}
+The Band-Pass Filter (BPF) is designed using the frequency sampling method with the following specifications:
+\begin{itemize}
+    \item Lower stopband edge: \( 0.35 \)
+    \item Upper stopband edge: \( 0.65 \)
+    \item Lower passband edge: \( 0.45 \)
+    \item Upper passband edge: \( 0.55 \)
+    \item Passband ripple: \( R_p = 1 \) dB
+    \item Stopband attenuation: \( A_s = 55 \) dB
+    \item Filter order: \( 65 \) (so that there are two samples in the transition band)
+\end{itemize}
+
+\subsection{Filter Design}
+The filter is designed using the frequency sampling method, employing the \texttt{fir2} function to generate the desired impulse response. The values for \( T_1 \) and \( T_2 \) are chosen optimally based on reference material.
+
+
+
+
+\subsection{Results and Discussion}
+
+This section presents the analysis of the designed Band-Pass Filter (BPF) using the frequency sampling method. The key characteristics are examined using magnitude response, phase response, and pole-zero plots.
+
+\subsubsection{Magnitude Response Analysis}
+The magnitude response of the designed BPF is shown in Figure~\ref{fig:mag_response_task2}. The key observations are:
+\begin{itemize}
+    \item The passband is clearly defined between 0.45 and 0.55 (normalized frequency) as per the specifications.
+    \item The stopbands extend below 0.35 and above 0.65, achieving the required attenuation level of approximately 55 dB.
+    \item The transition bands are visible, with slight ripples due to the nature of the frequency sampling method.
+    \item The sharpness of the filter’s response confirms the effectiveness of the chosen design order.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{magnitude_response_task2.png}
+    \caption{Magnitude response of the designed Band-Pass Filter.}
+    \label{fig:mag_response_task2}
+\end{figure}
+
+\subsubsection{Phase Response Analysis}
+Figure~\ref{fig:phase_response_task2} illustrates the phase response of the designed filter. The key observations are:
+\begin{itemize}
+    \item The phase response appears mostly linear across the passband, ensuring minimal phase distortion.
+    \item Oscillations are visible at the band edges due to the frequency sampling method’s characteristics.
+    \item The filter maintains a relatively smooth phase transition across the designed passband.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{phase_response_task2.png}
+    \caption{Phase response of the designed Band-Pass Filter.}
+    \label{fig:phase_response_task2}
+\end{figure}
+
+\subsubsection{Pole-Zero Plot Analysis}
+The pole-zero plot, shown in Figure~\ref{fig:pole_zero_task2}, provides insight into the filter’s stability and frequency characteristics:
+\begin{itemize}
+    \item All zeros are symmetrically placed around the unit circle, ensuring stability.
+    \item The absence of poles confirms that this is a Finite Impulse Response (FIR) filter.
+    \item The dense clustering of zeros near the stopbands contributes to the high attenuation observed in the magnitude response.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pole_zero_task2.png}
+    \caption{Pole-zero plot of the designed Band-Pass Filter.}
+    \label{fig:pole_zero_task2}
+\end{figure}
+
+\subsubsection{Verification of Design Specifications}
+To verify that the designed filter meets the given specifications:
+\begin{itemize}
+    \item The passband ripple (\( R_p \)) remains within 1 dB, ensuring minimal signal distortion.
+    \item The stopband attenuation (\( A_s \)) exceeds 55 dB, meeting the required rejection criteria.
+    \item The magnitude and phase response confirm that the filter is properly designed using the frequency sampling method.
+\end{itemize}
+\documentclass{article}
+\usepackage{graphicx}  % For adding images
+\usepackage{amsmath}   % For mathematical expressions
+\usepackage{amssymb}   % Additional math symbols
+\usepackage{caption}   % Custom captions for figures
+
+\title{Task 3: Design of a Low-Pass Butterworth Filter}
+\author{Your Name}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Task 3: Design a Low-Pass Butterworth Filter}
+
+\subsection{Filter Specification}
+The objective is to design a **low-pass Butterworth filter** that meets the following specifications:
+\begin{itemize}
+    \item Passband cutoff frequency: $P_p = 0.25$
+    \item Stopband cutoff frequency: $S_s = 0.30$
+    \item Passband ripple: $R_p = 2$ dB
+    \item Stopband ripple (attenuation): $A_s = 20$ dB
+\end{itemize}
+The Butterworth filter is chosen because of its maximally flat frequency response in the passband. 
+
+\subsection{Results and Discussion}
+
+\subsubsection{Pole-Zero Plot}
+The pole-zero plot of the designed filter is shown in Figure~\ref{fig:pzplot}. This plot represents the poles (marked as "X") and zeros (marked as "O") of the system in the complex plane.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Screenshot 2025-03-25 205345.png}
+    \caption{Pole-Zero Plot of the Designed Butterworth Filter}
+    \label{fig:pzplot}
+\end{figure}
+
+\textbf{Explanation:}  
+- The poles are symmetrically placed inside the left-half plane for the analog filter, ensuring stability
+- The absence of zeros in the Butterworth design contributes to a smooth and maximally flat frequency response.
+- The distance of the poles from the origin determines the cutoff frequency of the filter.
+
+\subsubsection{Phase Response}
+The phase response of the filter, shown in Figure~\ref{fig:phase}, illustrates how the filter affects different frequency components in terms of phase shift.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{phase response butterworth.png}
+    \caption{Phase Response of the Designed Butterworth Filter}
+    \label{fig:phase}
+\end{figure}
+
+\textbf{Explanation:}  
+- The Butterworth filter maintains a relatively linear phase response in the passband, reducing phase distortion.
+- The phase shift increases gradually with frequency, which is typical for a low-pass filter
+- A smoother phase response ensures minimal distortion when the filter is applied to signals.
+
+\subsubsection{Magnitude Response}
+The magnitude response depicted in Figure~\ref{fig:magnitude}, shows how the filter attenuates different frequency components.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{magnituderesponse butterworth.png}
+    \caption{Magnitude Response of the Designed Butterworth Filter}
+    \label{fig:magnitude}
+\end{figure}
+
+\textbf{Explanation:}  
+- The passband is flat indicating that the Butterworth filter does not introduce ripples in this region.
+- At the cutoff frequency, the gain is approximately -3 dB as expected in a Butterworth filter.
+- The stopband shows a sharp roll-off meaning frequencies beyond the stopband cutoff are effectively suppressed.
+- The filter meets the design constraints of passband ripple of 2 dB and stopband attenuation of 20 dB
+
+
+
+\section{Task 4: Low Pass Chebyshev-I Filter}
+
+\subsection{Filter Specifications}
+The design specifications for the Chebyshev-I low pass filter are as follows:
+\begin{itemize}
+    \item Passband cutoff frequency: $P_p = 0.20$
+    \item Stopband cutoff frequency: $S_s = 0.30$
+    \item Passband ripple: $R_p = 1$ dB
+    \item Stopband attenuation: $A_s = 30$ dB
+\end{itemize}
+
+\subsection{Results and Discussion}
+\subsubsection{Magnitude Response}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth,frame, clip]{mag C.png}
+    \caption{Magnitude response of the designed Chebyshev-I filter}
+    \label{fig:chebyshev_magnitude}
+\end{figure}
+
+The magnitude response of the Chebyshev-I filter exhibits a sharp transition from the passband to the stopband. Unlike Butterworth filters, which have a maximally flat response, Chebyshev-I filters introduce a small ripple in the passband to achieve a steeper roll-off. This design choice allows the filter to meet attenuation requirements more effectively within a narrower transition band.
+
+In this response, the passband remains relatively flat but shows small oscillations due to the Chebyshev characteristic. The stopband attenuation increases significantly beyond the cutoff frequency of 0.30, ensuring effective noise rejection.
+
+\subsubsection{Phase Response}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth,frame, clip]{phase C.png}
+    \caption{Phase response of the designed Chebyshev-I filter}
+    \label{fig:chebyshev_phase}
+\end{figure}
+
+The phase response plot illustrates how the phase of the signal varies with frequency. In an ideal filter, the phase response should be linear to avoid signal distortion. However, as observed in the graph, the Chebyshev-I filter exhibits a nonlinear phase response, especially in the transition region.
+
+This nonlinear phase shift can introduce phase distortion, affecting applications that require phase-linear filtering, such as audio signal processing. However, for many practical applications, this phase distortion is acceptable in exchange for sharper frequency selectivity.
+
+\subsubsection{Pole-Zero Plot}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth,frame, clip]{Pole C.png}
+    \caption{Pole-Zero Plot of the Chebyshev-I filter}
+    \label{fig:chebyshev_pz}
+\end{figure}
+
+The pole-zero plot provides insights into the stability and frequency characteristics of the designed filter. 
+
+- The **poles** (marked as "x") lie inside the unit circle, which confirms the stability of the filter.
+- The **zeros** (marked as "o") are located on the left side, influencing the filter's frequency response.
+
+The location of poles determines the filter’s behavior, ensuring that it functions as a low-pass filter with the desired cutoff frequency. The closer the poles are to the unit circle, the sharper the frequency response transition.
+
+
+
+
+
+
+
+
+\section{Conclusion}
+The designed Low-Pass Filter (LPF) successfully meets the required specifications using the windowing method.  
+- The magnitude response confirms proper passband and stopband characteristics.
+- The phase response demonstrates a nearly linear phase, preventing phase distortion.
+- The pole-zero plot validates filter stability and expected FIR behavior.  
+Overall, the results confirm the effectiveness of this design method in practical DSP applications.
+The designed Band-Pass Filter (BPF) effectively meets the required specifications using the frequency sampling method.  
+- The magnitude response confirms well-defined passband and stopband characteristics.
+- The phase response maintains near-linearity in the passband.
+- The pole-zero plot validates filter stability and expected FIR behavior.  
+Overall, the results confirm that the frequency sampling method is suitable for designing high-performance band-pass filters.
+The Butterworth low-pass filter was successfully designed to meet the given specifications. The pole-zero plot confirmed the filter's stability, while the phase and magnitude responses validated its performance. Using the Impulse Invariant Method the analog filter was converted into a digital filter, ensuring the required frequency response. The results show that the filter effectively suppresses frequencies beyond the stopband cutoff, making it suitable for low-pass filtering applications.
+The Chebyshev-I filter effectively achieves a sharper roll-off compared to Butterworth filters by allowing some ripple in the passband. The key observations include a magnitude response confirms a sharp cutoff with a steep transition, the phase response reveals some phase distortion due to the nonlinear phase characteristics and the pole-zero plot verifies the filter’s stability with all poles inside the unit circle.
+
+
+
+\end{document}

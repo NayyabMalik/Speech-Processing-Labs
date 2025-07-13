@@ -1,0 +1,262 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[export]{adjustbox}
+
+\usepackage{minted} 
+% MATLAB Code Style
+\lstdefinestyle{matlab}{
+    language=Matlab,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!70!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10}
+}
+
+\title{\textbf{Lab Report 3: Analysis of Z-Transform in Matlab}}
+\author{Nayyab Malik}
+\date{February 11, 2025}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\begin{document}
+
+\maketitle
+
+\section{Objective}
+\begin{itemize}
+    \item Study Inverse and Wiener Filtering.
+    \item Study different types of noises.
+\end{itemize}
+
+\section{Software Required}
+\begin{itemize}
+    \item Computer workstation
+    \item Matlab 2015 or above
+\end{itemize}
+
+\section{Theory}
+\subsection{Z-Transform}
+The Z-transform converts a discrete time-domain signal into a complex frequency-domain representation. It can be defined as either a one-sided or two-sided transform.
+
+\subsection{Bilateral Z-transform}
+\begin{equation}
+    X(z) = \sum_{n=-\infty}^{\infty} x[n]z^{-n}
+\end{equation}
+
+\subsection{Unilateral Z-transform}
+\begin{equation}
+    X(z) = \sum_{n=0}^{\infty} x[n]z^{-n}
+\end{equation}
+
+\subsection{Rational Z-transform to Factored Z-transform}
+Given a transfer function:
+\begin{equation}
+    G(z) = \frac{2z^4 +16z^3 +44z^2 +56z +32}{3z^4 +3z^3 -15z^2 +18z -12}
+\end{equation}
+We can convert it to factored form using Matlab's \texttt{zp2sos} command.
+
+\subsection{Factored Z-transform to Rational Z-transform}
+The inverse process converts a factored transfer function back into rational form using \texttt{zp2tf}.
+
+\subsection{Partial Fraction Form}
+For high-order Z-transforms, partial fraction decomposition simplifies inverse Z-transform calculations:
+\begin{equation}
+    G(z) = \frac{18z^3}{18z^3+3z^2-4z-1}
+\end{equation}
+Using Matlab's \texttt{residuez} command, we get:
+\begin{equation}
+    G(z) = \frac{0.36}{1-0.5z^{-1}} + \frac{0.24}{1+0.33z^{-1}} + \frac{0.4}{1+0.33z^{-1}}
+\end{equation}
+
+\subsection{Zero-Pole Plot}
+The Matlab commands for pole-zero analysis:
+\begin{itemize}
+    \item \texttt{pzmap(sys)}: Computes pole-zero map.
+    \item \texttt{ztrans(f)}: Computes Z-transform.
+    \item \texttt{zplane(b,a)}: Displays poles and zeros.
+\end{itemize}
+
+\section{Matlab Code}
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+syms z n
+% Z-transform
+f = n^4;
+ztrans(f)
+
+% Inverse Z-transform
+a = iztrans(3*Z/(Z+1))
+f = 2*Z/(Z-2)^2;
+iztrans(f)
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{z_transform_output.png}
+    \caption{Z-transform Output from MATLAB}
+    \label{fig:ztransform}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{inverse_z_transform_output.png}
+    \caption{Inverse Z-transform Output from MATLAB}
+    \label{fig:inverseztransform}
+\end{figure}
+
+\section{Example}
+Express the following Z-transform in factored form, plot its poles and zeros, and determine its Region of Convergence (ROC):
+\begin{equation}
+    G(z) = \frac{2z^4 +16z^3 +44z^2 +56z +32}{3z^4 +3z^3 -15z^2 +18z -12}
+\end{equation}
+
+\subsection{MATLAB Code}
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+% MATLAB Code to Compute Zeros, Poles, and ROC
+clc; clear; close all;
+
+% Define numerator and denominator coefficients
+num = [2 16 44 56 32]; % Coefficients of numerator
+den = [3 3 -15 18 -12]; % Coefficients of denominator
+
+% Compute zeros, poles, and gain
+[z, p, k] = tf2zp(num, den);
+
+disp('Zeros:');
+disp(z);
+disp('Poles:');
+disp(p);
+disp('Gain:');
+disp(k);
+
+% Plot the pole-zero diagram
+figure;
+zplane(num, den);
+title('Pole-Zero Plot');
+
+% Compute and display frequency response
+Fs = 1000; % Sampling frequency
+figure;
+freqz(num, den, Fs);
+title('Frequency Response');
+
+% Compute and plot impulse response
+figure;
+impz(num, den);
+title('Impulse Response');
+\end{minted}
+In this experiment, we analyze a discrete-time system using its transfer function representation. The transfer function is defined by its numerator and denominator coefficients, from which we compute the system's \textbf{zeros, poles, and gain} using the \texttt{tf2zp} function. 
+
+\begin{itemize}
+    \item The \textbf{Pole-Zero Plot} provides insights into system stability and behavior, where poles determine the stability and zeros influence the system's frequency response.
+    \item The \textbf{Frequency Response} (\texttt{freqz}) visualizes the system's magnitude and phase response, indicating how it modifies input signals across different frequencies.
+    \item The \textbf{Impulse Response} (\texttt{impz}) demonstrates the system's reaction to a discrete impulse input, revealing its transient behavior.
+\end{itemize}
+
+\textbf{Key Takeaway:} The pole-zero plot helps assess system stability, while the frequency and impulse responses provide insight into how the system processes different signals. These analyses are crucial for designing and evaluating digital filters in signal processing.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.3\textwidth }
+        \includegraphics[width=\textwidth,frame, clip]{pole_zero_plot.jpg}
+        \caption{Pole-Zero Plot}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth,frame, clip]{frequency_response.jpg}
+        \caption{Frequency Response}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth,frame, clip]{impulse_response.jpg}
+        \caption{Impulse Response}
+    \end{subfigure}
+    \caption{Results from MATLAB Analysis}
+\end{figure}
+
+
+\section{Lab Task}
+Express the following Z-transform in factored form, plot its poles and zeros, and determine its ROC:
+\begin{equation}
+    G(z) = \frac{2z^4 +16z^3 +44z^2 +56z +32}{3z^4 +3z^3 -15z^2 +18z -12}
+\end{equation} 
+\subsection{MATLAB CODE }
+
+\begin{minted}[frame=single,fontsize=\small]{matlab}
+% Define numerator and denominator coefficients
+num = [2 16 44 56 32];
+den = [3 3 -15 18 -12];
+
+% Factorize the transfer function
+[z, p, k] = tf2zp(num, den);
+
+% Plot the poles and zeros
+figure;
+zplane(num, den);
+title('Pole-Zero Plot of G(z)');
+
+% Display results
+disp('Zeros of G(z):');
+disp(z);
+disp('Poles of G(z):');
+disp(p);
+
+% Save the figure
+saveas(gcf, 'pole_zero_plot.png');
+\end{minted}
+
+\subsection{Output Figures}
+The given MATLAB graph computes the pole-zero plot of the discrete-time transfer function \( G(z) \). The function is defined by its numerator and denominator coefficients, which are factorized into zeros, poles, and gain using the \texttt{tf2zp} function. The \textbf{pole-zero plot} provides a graphical representation of the system's stability and behavior:
+
+\begin{itemize}
+    \item \textbf{Zeros:} The roots of the numerator, indicating frequencies where the system response is zero.
+    \item \textbf{Poles:} The roots of the denominator, determining system stability and resonance characteristics.
+\end{itemize}
+
+By analyzing the distribution of poles and zeros, we can assess the system's response in the frequency domain. A system is considered \textbf{stable} if all poles lie inside the unit circle in the \( z \)-plane. The generated figure is saved as \texttt{pole\_zero\_plot.png} for further documentation.
+
+\textbf{Key Takeaway:} The pole-zero plot is essential for understanding system stability and frequency response, making it a crucial tool in digital signal processing and control systems.
+\begin{figure}[h]
+    \centering
+        \includegraphics[width=0.6\textwidth, frame, clip]{Screenshot 2025-02-18 112048.png}
+    \caption{Pole-Zero Plot of \( G(z) \)}
+    \label{fig:polezero}
+\end{figure}
+\begin{verbatim}
+Zeros:
+  -2.0000 + 0.0000i
+  -2.0000 - 0.0000i
+  -2.0000 + 0.0000i
+  -2.0000 - 0.0000i
+
+Poles:
+   2.0000 + 0.0000i
+   1.0000 + 0.0000i
+   1.0000 + 0.0000i
+  -2.0000 + 0.0000i
+
+Gain:
+   0.6667
+\end{verbatim}
+
+\section{Conclusion}
+Z-transform analysis has been successfully verified.
+
+\end{document}
+
+

@@ -1,0 +1,25 @@
+ clc;
+ clear all;
+ close all;
+ t=-2:1:2;
+ y=[zeros(1,2) 1 zeros(1,2)];
+ subplot (3,1,1);
+ stem(t,y);
+ grid;
+ 4
+title ('Impulse Response');
+ xlabel ('Time');
+ ylabel ('Amplitude');
+ N=input('Enter the length of the FFT sequence: ');
+ xk=fft(y,N);
+ magxk=abs(xk);
+ angxk=angle(xk);
+ k=0:N-1;
+ subplot(3,1,2);
+ stem(k,magxk);
+ xlabel('k');
+ ylabel('|x(k)|');
+ subplot(3,1,3);
+ stem(k,angxk);
+ xlabel('k');
+ ylabel('arg(x(k))');
